@@ -108,6 +108,105 @@ For LLM API calls, you can optionally provide your own API key:
 - `X-Custom-Api-Key` - Your LLM provider API key
 - `X-Target-Model` - Target model (default: `gemini-2.5-flash-lite`)
 
+## Payment Endpoints
+
+### Create Order
+
+Create a Razorpay payment order for upgrading to Pro.
+
+```bash
+curl -X POST https://api.whatdoc.xyz/payment/create-order \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "planTier": "499"
+  }'
+```
+
+**Request Body:**
+
+<ParamField path="planTier" type="string" required>
+  Plan tier to upgrade to. Options: `"499"` (₹499/month - 10 repos) or `"999"` (₹999/month - 25 repos)
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "id": "order_N1234567890",
+  "entity": "order",
+  "amount": 49900,
+  "currency": "INR",
+  "receipt": "rcpt_abc123_1234567890",
+  "status": "created",
+  "key_id": "rzp_live_xxxxxxxxxx"
+}
+```
+
+<ResponseField name="id" type="string">
+  Razorpay order ID to be used in payment verification
+</ResponseField>
+
+<ResponseField name="amount" type="number">
+  Amount in smallest currency unit (paise for INR)
+</ResponseField>
+
+<ResponseField name="key_id" type="string">
+  Razorpay key ID for client-side payment integration
+</ResponseField>
+
+### Verify Payment
+
+Verify Razorpay payment and activate Pro subscription.
+
+```bash
+curl -X POST https://api.whatdoc.xyz/payment/verify \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "razorpay_order_id": "order_N1234567890",
+    "razorpay_payment_id": "pay_N1234567890",
+    "razorpay_signature": "signature_string",
+    "planTier": "499"
+  }'
+```
+
+**Request Body:**
+
+<ParamField path="razorpay_order_id" type="string" required>
+  Order ID from create-order response
+</ParamField>
+
+<ParamField path="razorpay_payment_id" type="string" required>
+  Payment ID from Razorpay client callback
+</ParamField>
+
+<ParamField path="razorpay_signature" type="string" required>
+  Payment signature from Razorpay client callback
+</ParamField>
+
+<ParamField path="planTier" type="string" required>
+  Plan tier being purchased (`"499"` or `"999"`)
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Payment verified and upgraded successfully.",
+  "user": {
+    "isPro": true,
+    "planTier": "499",
+    "proExpiryDate": "2026-04-03T15:00:00.000Z"
+  }
+}
+```
+
+<Note>
+  Pro subscriptions are valid for 30 days from the payment verification date.
+</Note>
+
 ## Next Steps
 
 <CardGroup cols={2}>
