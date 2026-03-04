@@ -1,0 +1,124 @@
+---
+title: Connecting GitHub
+description: Connect your GitHub account to import repositories and generate documentation
+---
+
+## Overview
+
+WhatDoc uses GitHub OAuth to securely access your repositories. You can choose to connect with access to public repositories only, or include private repositories for comprehensive documentation generation.
+
+## Connect Your GitHub Account
+
+<Steps>
+  <Step title="Navigate to Import Page">
+    From your dashboard, click **Import Repository** or navigate to `/import`. You'll see a GitHub connection prompt if you haven't connected yet.
+  </Step>
+
+  <Step title="Choose Repository Access">
+    Before connecting, toggle the **Include private repositories** option:
+    
+    - **Public only**: Grants access to your public repositories using the `public_repo` scope
+    - **Public + Private**: Grants full repository access using the `repo` scope
+    
+    Your selection determines which repositories you'll be able to import for documentation generation.
+  </Step>
+
+  <Step title="Authorize with GitHub">
+    Click **Connect GitHub**. You'll be redirected to GitHub's OAuth authorization page.
+    
+    GitHub will ask you to authorize WhatDoc with the requested permissions. Review and click **Authorize** to continue.
+  </Step>
+
+  <Step title="Automatic Redirect">
+    After authorization, GitHub redirects you back to WhatDoc at `/import` with your repositories loaded.
+    
+    If the connection fails, you'll see an error message with the specific reason (e.g., `already_linked`, `server_error`).
+  </Step>
+</Steps>
+
+## OAuth Flow Details
+
+The GitHub OAuth flow works as follows:
+
+1. **Request Authorization URL**: WhatDoc calls `GET /api/auth/github?includePrivate=true` to get the OAuth URL
+2. **GitHub Redirect**: You're sent to `https://github.com/login/oauth/authorize` with:
+   - `client_id`: WhatDoc's GitHub App ID
+   - `scope`: Either `user:email,public_repo` or `user:email,repo`
+   - `state`: Your user ID for security verification
+3. **Callback**: GitHub redirects to `/api/auth/github/callback` with an authorization code
+4. **Token Exchange**: WhatDoc exchanges the code for an access token
+5. **Profile Fetch**: Your GitHub profile is fetched to link your account
+6. **Security Check**: The system ensures one GitHub account = one WhatDoc account
+7. **Storage**: Your GitHub username, ID, and access token are securely stored
+
+## Browse Your Repositories
+
+Once connected, the import page displays all your repositories:
+
+- **Search**: Filter repositories by name using the search bar
+- **Filter**: Toggle between all repos, public only, or private only
+- **Metadata**: Each repo shows:
+  - Primary programming language with color indicator
+  - Description
+  - Last update time (e.g., "2h ago", "Jan 30")
+  - Privacy status (lock icon for private repos)
+  - Star count
+
+<Info>
+  WhatDoc fetches up to 100 repositories per page and automatically paginates through all your repos, sorted by most recently updated.
+</Info>
+
+## Import a Repository
+
+To generate documentation for a repository:
+
+1. Browse your repositories on the `/import` page
+2. Locate the repository you want to document
+3. Click the **Import** button next to the repository
+4. You'll be redirected to `/configure` to set up your documentation project
+
+The selected repository's full name (e.g., `username/repo-name`) is passed as a URL parameter for the next configuration step.
+
+## Unlinking GitHub
+
+To disconnect your GitHub account:
+
+1. Go to your **Profile** settings
+2. Navigate to the **Connected Accounts** section
+3. Click **Unlink GitHub**
+4. Confirm the action
+
+This removes your GitHub ID, username, and access token from WhatDoc. You'll need to reconnect to import new repositories.
+
+## Security Considerations
+
+<Warning>
+  **One GitHub Account Per User**: WhatDoc enforces a one-to-one mapping between GitHub accounts and WhatDoc users. If your GitHub account is already linked to another WhatDoc account, the connection will fail with an `already_linked` error.
+</Warning>
+
+- Your GitHub access token is stored encrypted in the database
+- Tokens are used exclusively for repository access during documentation generation
+- WhatDoc never accesses your token for purposes beyond documentation generation
+- You can revoke WhatDoc's access anytime via GitHub Settings > Applications
+
+## Troubleshooting
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `no_code` | OAuth flow didn't return authorization code | Retry the connection process |
+| `already_linked` | Your GitHub account is linked to another WhatDoc user | Use a different GitHub account or contact support |
+| `server_error` | Backend processing failed | Retry after a few moments |
+| `GitHub not connected` | Token expired or removed | Reconnect your GitHub account |
+
+## What's Next?
+
+After connecting GitHub and importing a repository, proceed to:
+
+<CardGroup cols={2}>
+  <Card title="Generating Docs" icon="sparkles" href="/guides/generating-docs">
+    Configure and generate your documentation
+  </Card>
+  <Card title="Customizing Docs" icon="paintbrush" href="/guides/customizing-docs">
+    Add your logo, branding, and navigation
+  </Card>
+</CardGroup>

@@ -1,0 +1,263 @@
+---
+title: Generating Documentation
+description: Complete guide to configuring and generating AI-powered documentation for your repository
+---
+
+## Overview
+
+WhatDoc analyzes your codebase and generates comprehensive documentation using AI models. The generation process is fully automated—simply configure your project settings and deploy.
+
+## Configuration Flow
+
+After importing a repository from GitHub, you'll configure your documentation project on the `/configure` page.
+
+<Steps>
+  <Step title="Repository Selection">
+    The repository you selected is displayed in a read-only field. This is the full GitHub repository name (e.g., `expressjs/express`).
+  </Step>
+
+  <Step title="Set URL Slug">
+    Define the public URL path for your documentation:
+    
+    ```
+    whatdoc.xyz/p/your-slug-here
+    ```
+    
+    **Slug requirements:**
+    - At least 2 characters
+    - Lowercase letters, numbers, and hyphens only
+    - Must be unique across all WhatDoc projects
+    - Auto-generated from your repository name (customizable)
+    
+    <Info>
+      If the slug is taken, you'll receive an error: `This URL slug is already taken.`
+    </Info>
+  </Step>
+
+  <Step title="Choose Tech Stack">
+    Select the technology stack that best describes your project:
+    
+    - **MERN**: MongoDB, Express, React, Node.js
+    - **Next.js**: Next.js framework
+    - **Other**: All other technologies
+    
+    This helps the AI tailor the documentation to your stack's conventions.
+  </Step>
+
+  <Step title="Select Design Template">
+    Choose from 16 professionally designed documentation templates:
+    
+    **Free Templates:**
+    - Modern
+    - Minimal
+    - Twilio (default)
+    - Django
+    - MDN
+    - AeroLatex
+    
+    **Premium Templates** (Pro users or promo code holders):
+    - Fintech
+    - DevTools
+    - Minimalist
+    - OpenSource
+    - Wiki
+    - ComponentLib
+    - ConsumerTech
+    - DeepSpace
+    - Web3
+    - Enterprise
+    
+    Each template includes a live preview thumbnail.
+  </Step>
+
+  <Step title="Configure Model & API Key (Optional)">
+    **Bring Your Own Key (BYOK)**: Use your own API key for unlimited generation.
+    
+    **Available Models:**
+    
+    *Gemini (Free with WhatDoc):*
+    - `gemini-2.5-flash-lite` (default, fastest)
+    - `gemini-2.5-flash`
+    - `gemini-2.5-pro` (requires API key)
+    
+    *OpenAI (requires API key):*
+    - `gpt-4o`
+    - `gpt-4o-mini`
+    
+    *Anthropic (requires API key):*
+    - `claude-3.7-sonnet`
+    - `claude-3.5-haiku`
+    
+    <Note>
+      Your API key is **never stored** in the database. It's sent directly from your browser to the AI provider via request headers (`x-custom-api-key`, `x-target-model`).
+    </Note>
+    
+    Get your API keys:
+    - [Google AI Studio](https://aistudio.google.com/app/apikey) (Gemini, free)
+    - [OpenAI Platform](https://platform.openai.com/api-keys)
+    - [Anthropic Console](https://console.anthropic.com/settings/keys)
+  </Step>
+
+  <Step title="Deploy Documentation">
+    Click **Deploy Documentation** to queue your generation job.
+    
+    The system checks your tier limits:
+    
+    **Free Tier:**
+    - 2 documentation projects by default
+    - 5 projects with promo code `FREE5DOCS`
+    - Additional generations with code `WHATDOCFAM` (+10 bonus)
+    
+    **Pro Tier ($4.99/mo):**
+    - Up to 10 repositories
+    
+    **Pro Tier ($9.99/mo):**
+    - Up to 25 repositories
+    
+    If you hit your limit, you'll see: `Free tier limit reached!` with code `UPGRADE_REQUIRED`.
+  </Step>
+</Steps>
+
+## Generation Process
+
+Once deployed, your project enters the generation queue:
+
+### Queue System (BullMQ)
+
+1. **Queued**: Your project is added to the generation queue
+   - Pro users get priority: `priority: 1`
+   - Free users: `priority: 10`
+
+2. **Job Data**: The following is sent to the worker:
+   ```json
+   {
+     "projectId": "...",
+     "repoUrl": "https://x-access-token:TOKEN@github.com/user/repo.git",
+     "commitHash": "7a8f9b...",
+     "llmProvider": "gemini",
+     "byokOptions": {
+       "customKey": "your-api-key",
+       "targetModel": "gemini-2.5-flash-lite"
+     }
+   }
+   ```
+
+3. **Status Tracking**: You can monitor progress on `/deploy/:projectId`
+   - `queued` → `scanning` → `analyzing` → `generating` → `ready` or `failed`
+
+### Private Repository Access
+
+For private repositories, WhatDoc injects your GitHub OAuth token into the Git URL:
+
+```javascript
+const repoUrl = user.githubAccessToken
+  ? `https://x-access-token:${user.githubAccessToken}@github.com/${repoName}.git`
+  : `https://github.com/${repoName}.git`;
+```
+
+This allows the worker to clone private repositories securely during generation.
+
+### Smart Caching
+
+WhatDoc caches documentation based on the latest commit SHA:
+
+- The system fetches the latest commit hash from GitHub API before generation
+- If a project with the same `repoName` and `commitHash` exists, generation is skipped
+- You're redirected directly to the cached docs: `/p/:slug`
+
+This saves generation time and API costs when re-importing unchanged repositories.
+
+## Checking Job Status
+
+You can query job progress via the API:
+
+```bash
+GET /api/projects/job/:jobId
+```
+
+Response:
+```json
+{
+  "jobId": "12345",
+  "state": "active",
+  "progress": 45,
+  "failedReason": null
+}
+```
+
+**Job States:**
+- `waiting`: In queue, not started
+- `active`: Currently processing
+- `completed`: Successfully generated
+- `failed`: Generation failed (check `failedReason`)
+
+## What Gets Generated?
+
+The AI analyzes your codebase and produces:
+
+- **Overview**: Project purpose and architecture
+- **Setup Instructions**: Installation and configuration
+- **API Reference**: Functions, classes, endpoints
+- **Usage Examples**: Code snippets and workflows
+- **Directory Structure**: File organization explanation
+- **Tech Stack**: Dependencies and frameworks identified
+
+The generated markdown is stored in the `generatedDocs` field of your project.
+
+## Generation Limits
+
+| Tier | Projects | Priority | Notes |
+|------|----------|----------|-------|
+| Free (default) | 2 | Low (10) | Can be upgraded to 5 with code |
+| Free + `FREE5DOCS` | 5 | Low (10) | One-time code |
+| Free + `WHATDOCFAM` | +10 bonus generations | Low (10) | Limited redemptions |
+| Pro ($4.99) | 10 repos | High (1) | Recurring limit |
+| Pro ($9.99) | 25 repos | High (1) | Recurring limit |
+| BYOK | Unlimited | Varies | Uses your API quota |
+
+<Warning>
+  Pro users have a **recurring limit** based on the number of repositories you can have active, not the number of generations. Free users have a **lifetime generation count** that increments with each project.
+</Warning>
+
+## Viewing Your Documentation
+
+After successful generation:
+
+1. Navigate to `/p/:slug` to view your live documentation
+2. Access the project from your dashboard at `/dashboard`
+3. Edit and customize via `/editor/:projectId`
+
+Your documentation is publicly accessible by default (`isPublic: true`).
+
+## Regenerating Documentation
+
+To regenerate documentation for a repository:
+
+1. Delete the existing project from your dashboard
+2. Re-import the repository from `/import`
+3. Configure and deploy again
+
+<Note>
+  If the repository hasn't changed (same commit hash), WhatDoc will serve the cached version instead of regenerating.
+</Note>
+
+## Troubleshooting
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `Slug is already taken` | Another project uses this slug | Choose a different slug |
+| `UPGRADE_REQUIRED` | Tier limit reached | Upgrade to Pro or use a promo code |
+| `Failed to create project` | Server error or invalid data | Check your configuration and retry |
+| Job stuck in `queued` | High queue traffic | Wait for workers to process (Pro users prioritized) |
+| Generation `failed` | Code parsing error or API timeout | Check `failedReason` in job status |
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Customizing Docs" icon="paintbrush" href="/guides/customizing-docs">
+    Add your logo, branding, and custom navigation
+  </Card>
+  <Card title="Deploying Docs" icon="rocket" href="/guides/deploying-docs">
+    Deploy to a custom subdomain or domain
+  </Card>
+</CardGroup>

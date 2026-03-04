@@ -1,0 +1,397 @@
+---
+title: Projects
+description: Create, retrieve, update, and delete documentation projects
+---
+
+## Overview
+
+Projects represent documentation sites generated from GitHub repositories. Each project has a unique slug for accessing the documentation.
+
+## Create Project
+
+Queue a new documentation generation job for a GitHub repository.
+
+```bash
+curl -X POST https://api.whatdoc.xyz/projects \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "repoName": "facebook/react",
+    "slug": "react-docs",
+    "techstack": "Other",
+    "llmProvider": "gemini",
+    "template": "modern"
+  }'
+```
+
+**Authentication:** Required  
+**Rate Limit:** 30 requests per minute
+
+<ParamField body="repoName" type="string" required>
+  GitHub repository in format `owner/repo` (e.g., `facebook/react`)
+</ParamField>
+
+<ParamField body="slug" type="string" required>
+  Unique URL slug for the documentation site. Must be unique across all projects.
+</ParamField>
+
+<ParamField body="techstack" type="string" default="Other">
+  Project tech stack: `MERN`, `Next.js`, or `Other`
+</ParamField>
+
+<ParamField body="llmProvider" type="string" default="gemini">
+  LLM provider for generation: `gemini` or `openai`
+</ParamField>
+
+<ParamField body="template" type="string" default="modern">
+  Documentation template. Available templates:
+  - `modern` (Free)
+  - `minimal` (Free)
+  - `twilio` (Premium)
+  - `django` (Premium)
+  - `mdn` (Premium)
+  - `aerolatex` (Premium)
+  - `fintech` (Premium)
+  - `devtools` (Premium)
+  - `minimalist` (Premium)
+  - `opensource` (Premium)
+  - `wiki` (Premium)
+  - `componentlib` (Premium)
+  - `consumertech` (Premium)
+  - `deepspace` (Premium)
+  - `web3` (Premium)
+  - `enterprise` (Premium)
+</ParamField>
+
+**Optional Headers:**
+
+<ParamField header="X-Custom-Api-Key" type="string">
+  Your own LLM API key (BYOK - Bring Your Own Key)
+</ParamField>
+
+<ParamField header="X-Target-Model" type="string" default="gemini-2.5-flash-lite">
+  Target LLM model when using custom API key
+</ParamField>
+
+<ResponseField name="message" type="string">
+  Success message
+</ResponseField>
+
+<ResponseField name="project" type="object">
+  Created project object
+  
+  <Expandable title="project properties">
+    <ResponseField name="_id" type="string">
+      Project unique identifier
+    </ResponseField>
+    
+    <ResponseField name="userId" type="string">
+      Owner's user ID
+    </ResponseField>
+    
+    <ResponseField name="repoName" type="string">
+      GitHub repository name
+    </ResponseField>
+    
+    <ResponseField name="slug" type="string">
+      URL slug
+    </ResponseField>
+    
+    <ResponseField name="techstack" type="string">
+      Project tech stack
+    </ResponseField>
+    
+    <ResponseField name="llmProvider" type="string">
+      LLM provider used
+    </ResponseField>
+    
+    <ResponseField name="template" type="string">
+      Template name
+    </ResponseField>
+    
+    <ResponseField name="status" type="string">
+      Generation status: `queued`, `scanning`, `analyzing`, `generating`, `ready`, or `failed`
+    </ResponseField>
+    
+    <ResponseField name="commitHash" type="string">
+      Latest commit SHA from repository
+    </ResponseField>
+    
+    <ResponseField name="isPremium" type="boolean">
+      Whether project uses premium features
+    </ResponseField>
+    
+    <ResponseField name="createdAt" type="string">
+      ISO 8601 timestamp
+    </ResponseField>
+    
+    <ResponseField name="updatedAt" type="string">
+      ISO 8601 timestamp
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="jobId" type="string">
+  BullMQ job ID for tracking generation progress
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Initial status: `queued`
+</ResponseField>
+
+**Plan Limits:**
+
+<Info>
+  - **Free:** 2 generations (or 5 with `FREE5DOCS` code)
+  - **Pro $4.99:** Up to 10 repositories
+  - **Pro $9.99:** Up to 25 repositories
+  - **Pro Unlimited:** No limits
+</Info>
+
+## List My Projects
+
+Get all projects owned by the authenticated user.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/mine \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+<ResponseField name="projects" type="array">
+  Array of project objects sorted by `updatedAt` (most recent first)
+</ResponseField>
+
+## Get Project by ID
+
+Retrieve a specific project by its ID.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+<ParamField path="projectId" type="string" required>
+  Project unique identifier
+</ParamField>
+
+<ResponseField name="project" type="object">
+  Complete project object with all fields
+</ResponseField>
+
+<Note>
+  Users can only access their own projects. Attempting to access another user's project returns `403 Forbidden`.
+</Note>
+
+## Get Project by Slug
+
+Publicly retrieve project information using its slug.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/slug/react-docs
+```
+
+**Authentication:** Not required (public endpoint)
+
+<ParamField path="slug" type="string" required>
+  Project URL slug
+</ParamField>
+
+<ResponseField name="project" type="object">
+  Project object
+</ResponseField>
+
+## Get Project by Subdomain
+
+Publicly retrieve project using subdomain.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/subdomain/acme
+```
+
+**Authentication:** Not required (public endpoint)
+
+<ParamField path="subdomain" type="string" required>
+  Subdomain (e.g., `acme` for `acme.whatdoc.xyz`)
+</ParamField>
+
+## Get Project by Custom Domain
+
+Publicly retrieve project using custom domain.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/custom-domain/docs.example.com
+```
+
+**Authentication:** Not required (public endpoint)
+
+<ParamField path="domain" type="string" required>
+  Custom domain configured for the project
+</ParamField>
+
+<ResponseField name="repoName" type="string">
+  Repository name
+</ResponseField>
+
+<ResponseField name="techstack" type="string">
+  Project tech stack
+</ResponseField>
+
+<ResponseField name="generatedDocs" type="string">
+  Generated documentation content
+</ResponseField>
+
+<ResponseField name="updatedAt" type="string">
+  Last update timestamp
+</ResponseField>
+
+<ResponseField name="creatorName" type="string">
+  Project owner's name
+</ResponseField>
+
+<ResponseField name="template" type="string">
+  Template name
+</ResponseField>
+
+<ResponseField name="subdomain" type="string">
+  Subdomain if configured
+</ResponseField>
+
+<ResponseField name="customization" type="object">
+  Customization settings
+</ResponseField>
+
+## Update Project
+
+Update project settings, template, or customization.
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template": "twilio",
+    "slug": "new-slug",
+    "subdomain": "myapp",
+    "customDomain": "docs.myapp.com",
+    "customization": {
+      "logoUrl": "https://example.com/logo.png",
+      "ownerName": "Acme Corp",
+      "currentVersion": "2.0.0"
+    }
+  }'
+```
+
+**Authentication:** Required
+
+<ParamField path="projectId" type="string" required>
+  Project unique identifier
+</ParamField>
+
+<ParamField body="template" type="string">
+  Change documentation template
+</ParamField>
+
+<ParamField body="slug" type="string">
+  Update URL slug (lowercase, alphanumeric and hyphens only)
+</ParamField>
+
+<ParamField body="subdomain" type="string">
+  Set subdomain (e.g., `myapp` → `myapp.whatdoc.xyz`)
+</ParamField>
+
+<ParamField body="customDomain" type="string">
+  Set custom domain. This will automatically configure Cloudflare SSL and add domain to Vercel.
+</ParamField>
+
+<ParamField body="generatedDocs" type="string">
+  Update documentation content
+</ParamField>
+
+<ParamField body="customization" type="object">
+  Customization settings object
+  
+  <Expandable title="customization properties">
+    <ParamField body="customization.logoUrl" type="string">
+      Logo URL
+    </ParamField>
+    
+    <ParamField body="customization.ownerName" type="string">
+      Owner/company name
+    </ParamField>
+    
+    <ParamField body="customization.currentVersion" type="string">
+      Current version number
+    </ParamField>
+    
+    <ParamField body="customization.upcomingVersion" type="string">
+      Upcoming version number
+    </ParamField>
+    
+    <ParamField body="customization.navLinks" type="array">
+      Navigation links array. Each item has `label` and `url`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ResponseField name="message" type="string">
+  Success message
+</ResponseField>
+
+<ResponseField name="project" type="object">
+  Updated project object
+</ResponseField>
+
+<Warning>
+  Custom domain setup requires valid DNS configuration. The domain must not be already mapped to another project.
+</Warning>
+
+## Delete Project
+
+Permanently delete a project.
+
+```bash
+curl -X DELETE https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+<ParamField path="projectId" type="string" required>
+  Project unique identifier
+</ParamField>
+
+<ResponseField name="message" type="string">
+  Success message: "Project deleted."
+</ResponseField>
+
+## List Available Providers
+
+Get list of available LLM providers.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/providers
+```
+
+**Authentication:** Not required (public endpoint)
+
+<ResponseField name="providers" type="array">
+  Array of available LLM provider names
+</ResponseField>
+
+## Project Status Values
+
+Projects progress through these status values during generation:
+
+| Status | Description |
+|--------|-------------|
+| `idle` | Initial state (unused in queue system) |
+| `queued` | Waiting in generation queue |
+| `scanning` | Scanning repository files |
+| `analyzing` | Analyzing code structure |
+| `generating` | Generating documentation |
+| `ready` | Documentation complete |
+| `failed` | Generation failed |

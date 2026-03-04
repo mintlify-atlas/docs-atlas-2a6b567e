@@ -1,0 +1,422 @@
+---
+title: AeroLaTeX Template
+description: Ultra-premium academic template with glassmorphic header and serif typography
+---
+
+# AeroLaTeX Template
+
+The AeroLaTeX template is an **ultra-premium academic documentation design** that brings the elegance of LaTeX typography to the web. Featuring a floating glassmorphic header, serif–sans font pairing, and meticulous attention to typographic detail, it's perfect for scholarly documentation, research projects, and premium technical content.
+
+## Design Overview
+
+This template combines **modern web aesthetics** with **classical typography principles**. The result is a sophisticated, paper-like reading experience that feels both contemporary and timeless.
+
+### Key Visual Elements
+
+- **Color Palette**: Paper white (`#FAFAFA`) with subtle warm tones and zinc accents
+- **Layout**: Minimalist sidebar with wide content area (max-width: 48rem)
+- **Typography**: Serif headings with sans-serif body, tabular numerals for section numbers
+- **Header**: Floating glassmorphic pill with backdrop blur
+- **Code Highlighting**: Prism theme with custom light styling
+
+## Features
+
+### Floating Glassmorphic Header
+
+The standout feature is a **pill-shaped header** that floats above the content:
+
+```jsx
+<header className={`
+  fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl
+  rounded-full px-8 py-3
+  border border-zinc-200/50
+  backdrop-blur-2xl
+  ${headerSolid 
+    ? 'bg-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.06)]'
+    : 'bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]'}
+`}>
+```
+
+Features:
+- **Backdrop Filter**: 2xl blur for glassmorphic effect
+- **Dynamic Opacity**: Increases from 60% to 80% on scroll
+- **Shadow Transitions**: Becomes more prominent as you scroll
+- **Rounded Full**: Perfect pill shape
+- **Contextual Breadcrumb**: Shows active section number
+
+### Reading Progress Bar
+
+Minimal 2px bar at the top:
+
+```jsx
+<div className="fixed top-0 h-[2px] bg-transparent">
+  <div 
+    className="bg-zinc-400/60 transition-[width] duration-200"
+    style={{ width: `${readPct}%` }}
+  />
+</div>
+```
+
+Subtle gray tone that doesn't distract from content.
+
+### Background Texture
+
+Multi-layered background for depth:
+
+```jsx
+// Radial gradient wash
+<div className="bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(0,0,0,0.02),transparent)]" />
+
+// Dot grid pattern
+<div style={{
+  backgroundImage: 'radial-gradient(circle, #999 0.5px, transparent 0.5px)',
+  backgroundSize: '24px 24px',
+  opacity: 0.035
+}} />
+```
+
+Creates a subtle paper-like texture without being distracting.
+
+### Sidebar Navigation
+
+Minimalist text-based navigation:
+
+```jsx
+<nav className="py-6 pl-8 pr-4">
+  <p className="text-[10px] tracking-[0.2em] uppercase text-zinc-400">
+    Contents
+  </p>
+  {sections.map((s, i) => (
+    <button className={active ? 'text-zinc-900 font-medium' : 'text-zinc-400'}>
+      <span className="font-mono tabular-nums">
+        {String(i + 1).padStart(2, '0')}
+      </span>
+      {s.title}
+    </button>
+  ))}
+</nav>
+```
+
+Features:
+- **Section Numbering**: Zero-padded decimal numbers (01, 02, ...)
+- **Tabular Numerals**: Monospace numbers for alignment
+- **No Borders**: Clean, borderless design
+- **Subtle Hover**: Gray to black transitions
+
+### Academic Title Block
+
+Elegant cover page styling:
+
+```jsx
+<div className="mb-16">
+  <div className="flex items-center gap-2 mb-4">
+    <BookOpen className="size-4 text-zinc-400" />
+    <span className="text-[10px] tracking-[0.2em] uppercase">
+      Documentation
+    </span>
+  </div>
+  <h1 className="font-serif text-5xl text-zinc-900 leading-[1.1]">
+    {repoShort}
+  </h1>
+  <p className="text-zinc-500 text-[1.05rem] leading-relaxed">
+    A complete reference for {project.repoName}.
+  </p>
+  {/* Elegant rule */}
+  <div className="h-px w-full bg-gradient-to-r from-zinc-300 via-zinc-200 to-transparent" />
+</div>
+```
+
+Mimics academic paper title pages.
+
+### Section Headings
+
+Numbered academic style:
+
+```jsx
+<div className="flex items-baseline gap-3 group">
+  <span className="font-mono text-sm text-zinc-300 tabular-nums">
+    {String(i + 1).padStart(2, '0')}
+  </span>
+  <h2 className="font-serif text-2xl text-zinc-900">
+    {s.title}
+  </h2>
+</div>
+<div className="h-px bg-zinc-200/80 mb-8" />
+```
+
+Features:
+- Gray section numbers
+- Serif headings
+- Horizontal rules
+- Generous spacing
+
+### Code Blocks
+
+Premium code presentation:
+
+```jsx
+<div className="rounded-lg border border-zinc-200 bg-[#F8F9FA] shadow-sm">
+  <div className="bg-zinc-100 border-b px-4 py-1.5">
+    <span className="text-[10px] font-mono uppercase tracking-widest">
+      {language}
+    </span>
+  </div>
+  <CopyBtn text={raw} />
+  <SyntaxHighlighter style={prism}>
+    {code}
+  </SyntaxHighlighter>
+</div>
+```
+
+Features:
+- Language header with small caps styling
+- Copy button (appears on hover)
+- Light background
+- Subtle shadow and border
+
+### Inline Code
+
+Pink accent with bordered style:
+
+```jsx
+code: 'font-mono bg-zinc-100 text-pink-600 px-1.5 py-0.5 rounded-md border border-zinc-200'
+```
+
+## Use Cases
+
+### Perfect For
+
+<CardGroup cols={2}>
+  <Card title="Research Papers" icon="flask">
+    Academic documentation and research project docs
+  </Card>
+  
+  <Card title="Technical Reports" icon="file-text">
+    White papers and technical specifications
+  </Card>
+  
+  <Card title="Premium Products" icon="gem">
+    High-end software documentation
+  </Card>
+  
+  <Card title="Mathematical Docs" icon="function">
+    Algorithm documentation with formal notation
+  </Card>
+</CardGroup>
+
+### Not Ideal For
+
+- Casual blog-style content
+- Code-heavy API docs (use Twilio instead)
+- Dark theme projects (use DevTools instead)
+- Minimalist branding (use Minimalist template)
+
+## Technical Implementation
+
+### Font Pairing
+
+Serif for headings, sans-serif for body:
+
+```jsx
+// Headings
+font-serif font-normal tracking-tight
+
+// Body
+font-sans text-[1.05rem] leading-relaxed
+
+// Numbers
+font-mono tabular-nums
+```
+
+This creates a classic academic look.
+
+### Section Numbering System
+
+```javascript
+const sectionIdx = (id) => {
+  const i = sections.findIndex(s => s.id === id);
+  return i >= 0 ? i + 1 : '';
+};
+
+// Render as:
+String(i + 1).padStart(2, '0')  // "01", "02", etc.
+```
+
+### Glassmorphic Effect
+
+Achieved through layered properties:
+
+```jsx
+// Backdrop filter
+backdrop-blur-2xl
+
+// Semi-transparent background
+bg-white/80
+
+// Subtle border
+border border-zinc-200/50
+
+// Soft shadow
+shadow-[0_8px_30px_rgb(0,0,0,0.06)]
+```
+
+### Scroll-Based Header Transform
+
+```javascript
+useEffect(() => {
+  const handler = () => {
+    setHeaderSolid(root.scrollTop > 20);
+  };
+  root.addEventListener('scroll', handler, { passive: true });
+}, []);
+```
+
+Transitions from translucent to more opaque on scroll.
+
+### Animations
+
+Smooth entrance animations:
+
+```css
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+```
+
+Applied with cubic-bezier easing:
+
+```jsx
+animate-[riseIn_0.7s_cubic-bezier(0.22,1,0.36,1)_both]
+```
+
+### Prose Styling
+
+Extensive prose customization:
+
+```jsx
+[
+  // Headings
+  'prose-headings:font-serif prose-headings:font-normal',
+  'prose-h2:text-2xl prose-h2:border-b prose-h2:pb-4',
+  
+  // Body
+  'prose-p:text-[1.05rem] prose-p:leading-relaxed',
+  
+  // Links
+  'prose-a:underline prose-a:decoration-zinc-300',
+  'hover:prose-a:decoration-zinc-900',
+  
+  // Code
+  'prose-code:bg-zinc-100/80 prose-code:rounded-md',
+  'prose-pre:bg-[#111] prose-pre:shadow-xl',
+  
+  // Lists
+  'prose-li:marker:text-zinc-400',
+].join(' ')
+```
+
+## Customization Options
+
+### Color Scheme
+
+Update zinc palette:
+
+```jsx
+// Current: zinc (neutral gray)
+text-zinc-900
+text-zinc-600
+text-zinc-400
+
+// Alternative: slate (cooler)
+text-slate-900
+text-slate-600
+text-slate-400
+```
+
+### Background Warmth
+
+Adjust paper color:
+
+```jsx
+bg-[#FAFAFA]  // Slightly warm white
+bg-white      // Pure white
+bg-[#F5F5F0]  // Warmer, more yellow
+```
+
+### Header Style
+
+Modify pill dimensions:
+
+```jsx
+w-[90%] max-w-5xl  // Current width
+rounded-full       // Pill shape
+px-8 py-3          // Internal padding
+```
+
+### Typography Scale
+
+```jsx
+text-5xl    // h1 (3rem)
+text-2xl    // h2 (1.5rem)
+text-[1.05rem]  // Body (slightly larger than 1rem)
+```
+
+## Browser Support
+
+- Chrome 95+ (for backdrop-filter)
+- Safari 14+
+- Firefox 103+
+- Edge 95+
+
+**Note**: Backdrop blur requires modern browser support.
+
+## Accessibility
+
+- **Semantic HTML**: Proper document structure
+- **ARIA Labels**: Screen reader support
+- **Keyboard Navigation**: Full keyboard access
+- **Focus Indicators**: Visible focus rings
+- **Sufficient Contrast**: Zinc-900 on white meets WCAG AAA
+
+## Example Preview
+
+A typical section:
+
+```markdown
+## 01 Introduction
+
+This section covers the fundamental concepts.
+
+```python
+def hello():
+    print("Hello, world!")
+```
+
+Key points:
+- Point one
+- Point two
+```
+
+Renders with:
+- Numbered heading with horizontal rule
+- Light code block with header
+- Relaxed paragraph spacing
+- Subtle list markers
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Generate Docs" icon="wand-magic-sparkles" href="/quickstart">
+    Create premium documentation with AeroLaTeX
+  </Card>
+  
+  <Card title="All Templates" icon="palette" href="/templates/overview">
+    Compare with 13 other design options
+  </Card>
+</CardGroup>

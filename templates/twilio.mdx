@@ -1,0 +1,225 @@
+---
+title: Twilio Template
+description: API-first documentation layout with sidebar navigation and syntax-highlighted code blocks
+---
+
+# Twilio Template
+
+The Twilio template is designed for API-first documentation, featuring a clean developer-focused layout inspired by Twilio's official documentation. It's perfect for projects that need to showcase code examples alongside explanatory text.
+
+## Design Overview
+
+The Twilio template features a **dark theme** with a navy blue background (`#0d122b`) that reduces eye strain during extended reading sessions. The layout uses a sidebar navigation pattern with a main content area, making it ideal for lengthy documentation with multiple sections.
+
+### Key Visual Elements
+
+- **Color Palette**: Deep navy (`#0d122b`) with blue accents (`#60a5fa`) and slate text
+- **Layout**: Fixed sidebar (260px) with scrollable main content area
+- **Typography**: Sans-serif with monospace code blocks
+- **Code Highlighting**: OneDark theme for syntax highlighting
+
+## Features
+
+### Sidebar Navigation
+
+The left sidebar includes:
+- **Search Bar**: Filter sections in real-time
+- **Section List**: All documentation sections with scroll-spy highlighting
+- **Collapsible on Mobile**: Hamburger menu for responsive design
+- **Active Section Indicator**: Blue highlight with border accent
+
+```jsx
+// Active section styling
+active ? 'bg-blue-500/10 text-blue-300 border-l-2 border-blue-400' : 'text-slate-500'
+```
+
+### Code Blocks
+
+Syntax-highlighted code blocks with:
+- **Copy Button**: Appears on hover with success feedback
+- **Language Labels**: Automatic language detection
+- **Dark Theme**: OneDark color scheme optimized for readability
+- **Rounded Corners**: Modern aesthetic with subtle borders
+
+### Hero Banner
+
+The top of each documentation page features an animated banner with:
+- **Gradient Background**: Blue to indigo gradient
+- **Shimmer Effect**: Subtle rotating conic gradient animation
+- **Project Metadata**: Tech stack badges and section count
+- **Icon Accent**: Zap icon with pulse animation
+
+```jsx
+<div className="animate-[spin_8s_linear_infinite]" 
+     style={{ background: 'conic-gradient(from 0deg, transparent, rgba(96,165,250,0.8), transparent 30%)' }} />
+```
+
+### Scroll Spy
+
+Automatic section highlighting using Intersection Observer:
+- Detects which section is currently in view
+- Updates sidebar navigation in real-time
+- Smooth scroll to sections on click
+- Mobile-friendly with overlay close
+
+## Use Cases
+
+### Perfect For
+
+<CardGroup cols={2}>
+  <Card title="REST APIs" icon="globe">
+    Document HTTP endpoints with request/response examples
+  </Card>
+  
+  <Card title="SDK Documentation" icon="box">
+    Show code examples in multiple programming languages
+  </Card>
+  
+  <Card title="Developer Tools" icon="wrench">
+    Technical documentation for CLI tools and libraries
+  </Card>
+  
+  <Card title="Integration Guides" icon="plug">
+    Step-by-step tutorials with code snippets
+  </Card>
+</CardGroup>
+
+### Not Ideal For
+
+- Marketing-focused content (use Consumer Tech instead)
+- Academic papers (use AeroLaTeX instead)
+- Light theme preferences (use Django or MDN instead)
+
+## Technical Implementation
+
+### Section Parsing
+
+The template automatically parses markdown content by `##` headings:
+
+```javascript
+function parseSections(markdown) {
+  const lines = markdown.split('\n');
+  const sections = [];
+  let cur = null;
+
+  for (const line of lines) {
+    const m = line.match(/^## (.+)/);
+    if (m) {
+      if (cur) sections.push(cur);
+      const title = m[1].trim();
+      const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      cur = { id, title, content: '' };
+    } else if (cur) {
+      cur.content += line + '\n';
+    }
+  }
+  return sections;
+}
+```
+
+### Markdown Components
+
+Custom React components enhance markdown rendering:
+
+- **Code Blocks**: `SyntaxHighlighter` with OneDark theme
+- **Inline Code**: Blue-tinted background with slate borders
+- **Blockquotes**: Left border with italic styling
+- **API Playground**: Interactive API testing (JSON config)
+
+### Animations
+
+Smooth entrance animations using CSS keyframes:
+
+```css
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+```
+
+Staggered delays create a progressive reveal effect.
+
+## Customization Options
+
+### Color Scheme
+
+Modify the color palette by updating these values:
+
+```jsx
+// Background colors
+bg-[#0d122b]  // Main background
+bg-[#1a2249]  // Sidebar background
+
+// Accent colors
+text-blue-300  // Active links
+border-blue-400  // Active indicators
+bg-blue-500/10  // Hover states
+```
+
+### Layout Width
+
+Adjust content width constraints:
+
+```jsx
+max-w-4xl  // Main content (default: 56rem)
+w-[260px]  // Sidebar width
+```
+
+### Typography
+
+Change font styles:
+
+```jsx
+font-logo  // WhatDoc branding (optional)
+font-medium  // Section headings
+font-mono  // Code blocks
+```
+
+## Browser Support
+
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Mobile browsers (iOS Safari, Chrome Mobile)
+
+## Example Preview
+
+Here's what a typical section looks like:
+
+```markdown
+## Getting Started
+
+Install the package using npm:
+
+```bash
+npm install example-sdk
+```
+
+Then import and initialize:
+
+```javascript
+import SDK from 'example-sdk';
+
+const client = new SDK({
+  apiKey: 'your-api-key'
+});
+```
+```
+
+This renders with:
+- Gradient section divider
+- Copy buttons on code blocks
+- OneDark syntax highlighting
+- Smooth scroll anchors
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Generate Docs" icon="sparkles" href="/quickstart">
+    Create your first documentation with the Twilio template
+  </Card>
+  
+  <Card title="View All Templates" icon="grid" href="/templates/overview">
+    Compare with other available templates
+  </Card>
+</CardGroup>

@@ -1,0 +1,294 @@
+---
+title: Deploying Your Documentation
+description: Deploy your documentation to a custom subdomain or connect your own domain
+---
+
+## Overview
+
+WhatDoc provides flexible deployment options for hosting your documentation. Every project gets a default URL, and you can upgrade to custom subdomains or bring your own domain.
+
+## Default Deployment
+
+Every project is automatically deployed at:
+
+```
+https://whatdoc.xyz/p/your-slug
+```
+
+Where `your-slug` is the URL slug you set during project configuration.
+
+**Characteristics:**
+- Publicly accessible by default (`isPublic: true`)
+- Instant deployment (no DNS configuration needed)
+- SEO-friendly URLs
+- Free for all tiers
+
+## Custom Subdomain
+
+Upgrade your documentation URL to a branded subdomain:
+
+```
+https://your-name.whatdoc.xyz
+```
+
+### Setting Up a Subdomain
+
+<Steps>
+  <Step title="Navigate to Settings">
+    Go to your project settings at `/settings/:projectId` or edit your project at `/editor/:projectId`.
+  </Step>
+
+  <Step title="Enter Subdomain">
+    In the **Domains** tab (Settings page) or **Settings drawer** (Editor), enter your desired subdomain.
+    
+    **Requirements:**
+    - Lowercase letters, numbers, and hyphens only
+    - Must be unique across all WhatDoc projects
+    - Minimum 2 characters
+    
+    The input field automatically sanitizes your entry:
+    ```javascript
+    subdomain.toLowerCase()
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+    ```
+  </Step>
+
+  <Step title="Save Subdomain">
+    Click **Save Subdomain** or **Save & Deploy**.
+    
+    If the subdomain is already taken, you'll see: `Subdomain is taken.`
+    
+    Otherwise, your documentation is instantly available at:
+    ```
+    https://your-subdomain.whatdoc.xyz
+    ```
+  </Step>
+
+  <Step title="Update Links">
+    The subdomain becomes your primary documentation URL. The old slug URL (`/p/slug`) remains accessible but the subdomain takes precedence in the UI.
+  </Step>
+</Steps>
+
+<Info>
+  Subdomain changes are instant—no DNS propagation required. WhatDoc handles routing automatically.
+</Info>
+
+## Custom Domain (Beta)
+
+<Warning>
+  Custom domains are currently in **BETA: TESTING MODE**. Cloudflare SSL provisioning and DNS propagation can occasionally take up to 24 hours to stabilize.
+</Warning>
+
+Connect your own domain to host documentation on your infrastructure:
+
+```
+https://docs.your-startup.com
+```
+
+### Setting Up a Custom Domain
+
+<Steps>
+  <Step title="Go to Domains Tab">
+    Navigate to `/settings/:projectId` and click the **Domains** tab.
+  </Step>
+
+  <Step title="Enter Custom Domain">
+    In the **Custom Domain** section, enter your domain:
+    
+    ```
+    docs.example.com
+    ```
+    
+    The field accepts:
+    - Subdomains (e.g., `docs.example.com`, `help.example.com`)
+    - Apex domains (e.g., `example.com`)
+    - Lowercase letters, numbers, dots, and hyphens
+  </Step>
+
+  <Step title="Click Connect">
+    Click **Connect** to save the custom domain.
+    
+    If the domain is already in use by another project, you'll see an error: `Custom domain update failed. It may be in use.`
+  </Step>
+
+  <Step title="Configure DNS">
+    You'll see DNS configuration instructions:
+    
+    ```
+    TYPE   CNAME
+    NAME   docs (or your subdomain)
+    TARGET cname.whatdoc.xyz
+    ```
+    
+    **Steps:**
+    1. Log in to your domain registrar or DNS provider (e.g., Cloudflare, Namecheap, GoDaddy)
+    2. Add a new **CNAME** record:
+       - **Name/Host**: Your subdomain (e.g., `docs`)
+       - **Value/Target**: `cname.whatdoc.xyz`
+       - **TTL**: Automatic or 3600 seconds
+    3. Save the record
+  </Step>
+
+  <Step title="Wait for Propagation">
+    DNS propagation typically takes:
+    - **5-15 minutes**: For most providers
+    - **Up to 24 hours**: In rare cases or with slower DNS providers
+    
+    You can check propagation status using:
+    ```bash
+    dig docs.example.com CNAME
+    nslookup docs.example.com
+    ```
+  </Step>
+
+  <Step title="SSL Provisioning">
+    WhatDoc automatically provisions an SSL certificate via Cloudflare once DNS propagates.
+    
+    Your documentation will be accessible at:
+    ```
+    https://docs.example.com
+    ```
+  </Step>
+</Steps>
+
+### DNS Configuration Example
+
+For domain `docs.startup.com`, add this CNAME record:
+
+| Type | Name | Target | TTL |
+|------|------|--------|-----|
+| CNAME | docs | cname.whatdoc.xyz | Auto |
+
+For apex domain `startup.com` (not recommended):
+
+| Type | Name | Target | TTL |
+|------|------|--------|-----|
+| CNAME | @ | cname.whatdoc.xyz | Auto |
+
+<Note>
+  Some DNS providers (like Cloudflare) support **CNAME flattening** for apex domains. Check your provider's documentation.
+</Note>
+
+## URL Priority
+
+When multiple URLs are configured, WhatDoc prioritizes them as follows:
+
+1. **Custom Domain** (if set): `https://docs.example.com`
+2. **Subdomain** (if set): `https://my-project.whatdoc.xyz`
+3. **Default Slug**: `https://whatdoc.xyz/p/my-project`
+
+All URLs remain accessible, but the highest priority URL is displayed in the UI and shared publicly.
+
+## Live URL Display
+
+Your current live URL is shown in multiple places:
+
+- **Dashboard**: On the project card
+- **Settings**: In the General tab (with copy button)
+- **Editor**: In the subdomain field
+
+You can click the **View Live** button to open your documentation in a new tab.
+
+## Deployment Pipeline
+
+When you save changes via the editor or settings:
+
+```javascript
+await projectApi.update(projectId, {
+  subdomain: 'my-org',
+  customDomain: 'docs.example.com',
+  generatedDocs: '# Updated docs',
+  customization: { ... }
+});
+```
+
+Changes go live **instantly**—no build process or queue delays.
+
+## Removing Custom Domains
+
+To remove a custom domain:
+
+1. Go to `/settings/:projectId` > **Domains** tab
+2. Clear the **Custom Domain** field
+3. Click **Connect** (saves as `null`)
+4. Optionally, remove the CNAME record from your DNS provider
+
+Your documentation reverts to the subdomain or default slug URL.
+
+## Security & SSL
+
+- **Automatic SSL**: All URLs (default, subdomain, custom domain) are served over HTTPS
+- **Certificate Management**: Handled automatically by Cloudflare
+- **HSTS**: Enabled for enhanced security
+- **No Configuration Needed**: SSL works out of the box
+
+<Check>
+  All WhatDoc documentation is served securely over HTTPS with automatic SSL certificate provisioning.
+</Check>
+
+## Troubleshooting
+
+### Subdomain Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "Subdomain is taken" | Another project uses this subdomain | Choose a different subdomain |
+| Subdomain not loading | Recent change, cache delay | Clear browser cache, wait 1-2 minutes |
+| Invalid subdomain error | Contains special characters | Use only letters, numbers, hyphens |
+
+### Custom Domain Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "Domain may be in use" | Another project uses this domain | Use a different domain or contact support |
+| DNS not resolving | CNAME record not set or propagating | Wait 15 minutes, check DNS with `dig` |
+| SSL certificate error | Certificate provisioning in progress | Wait up to 24 hours, check Cloudflare status |
+| 404 on custom domain | DNS points elsewhere | Verify CNAME target is `cname.whatdoc.xyz` |
+
+### Checking DNS Propagation
+
+**Linux/Mac:**
+```bash
+dig docs.example.com CNAME +short
+# Should return: cname.whatdoc.xyz
+```
+
+**Windows:**
+```bash
+nslookup -type=CNAME docs.example.com
+```
+
+**Online Tools:**
+- [DNS Checker](https://dnschecker.org/)
+- [WhatsMyDNS](https://www.whatsmydns.net/)
+
+## Best Practices
+
+<Check>
+  **Do:**
+  - Use subdomains like `docs.`, `help.`, or `api.` for documentation
+  - Keep subdomain names short and memorable
+  - Test DNS changes with `dig` before reporting issues
+  - Wait at least 15 minutes after DNS changes
+</Check>
+
+<Warning>
+  **Don't:**
+  - Use apex domains (e.g., `example.com`) unless your DNS provider supports CNAME flattening
+  - Change DNS records frequently (causes propagation delays)
+  - Mix HTTP/HTTPS links (use HTTPS everywhere)
+  - Use long or complex subdomain names
+</Warning>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Customizing Docs" icon="paintbrush" href="/guides/customizing-docs">
+    Add your logo, branding, and navigation
+  </Card>
+  <Card title="BYOK" icon="key" href="/guides/byok">
+    Use your own API key for unlimited generation
+  </Card>
+</CardGroup>

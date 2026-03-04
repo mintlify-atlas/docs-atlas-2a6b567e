@@ -1,0 +1,291 @@
+---
+title: "Documentation Templates"
+description: "Choose from 14+ professionally designed templates inspired by industry-leading documentation sites"
+---
+
+WhatDoc offers a curated collection of documentation templates inspired by the world's best developer documentation sites. Each template is optimized for readability, accessibility, and aesthetic appeal.
+
+## Available Templates
+
+### API-First Templates
+
+<AccordionGroup>
+  <Accordion title="Twilio" icon="phone">
+    **Style:** API-first layout with sidebar navigation and syntax-highlighted code blocks  
+    **Best for:** REST APIs, webhook documentation, developer SDKs  
+    **Inspired by:** [Twilio Docs](https://www.twilio.com/docs)
+    
+    Features:
+    - Clean, distraction-free reading experience
+    - Left sidebar with collapsible navigation
+    - Prominent code examples with multi-language support
+  </Accordion>
+
+  <Accordion title="Fintech (Stripe-Style)" icon="credit-card">
+    **Style:** Split-pane design with white prose on the left, dark code snippets on the right  
+    **Best for:** Payment APIs, financial services, transactional systems  
+    **Inspired by:** [Stripe API Docs](https://stripe.com/docs/api)
+    
+    Features:
+    - Sticky code examples that follow scrolling
+    - Dark slate background for code pane
+    - Emphasis on request/response clarity
+  </Accordion>
+</AccordionGroup>
+
+### Reference & Learning Templates
+
+<AccordionGroup>
+  <Accordion title="Django" icon="book">
+    **Style:** Classic two-column documentation with table of contents  
+    **Best for:** Framework documentation, guides, tutorials  
+    **Inspired by:** [Django Documentation](https://docs.djangoproject.com/)
+    
+    Features:
+    - Serif fonts for long-form reading
+    - Right-aligned table of contents
+    - Green accent colors
+  </Accordion>
+
+  <Accordion title="MDN (Mozilla Developer Network)" icon="code">
+    **Style:** Reference-style with generous whitespace and breadcrumb navigation  
+    **Best for:** Technical references, language specs, browser APIs  
+    **Inspired by:** [MDN Web Docs](https://developer.mozilla.org/)
+    
+    Features:
+    - Excellent information hierarchy
+    - Syntax highlighting with copy buttons
+    - Accessibility-first design
+  </Accordion>
+
+  <Accordion title="AeroLaTeX" icon="graduation-cap">
+    **Style:** Academic premium template with glassmorphic header and serif-sans pairing  
+    **Best for:** Research projects, academic papers, technical specifications  
+    
+    Features:
+    - Paper-white background with dark IDE code blocks
+    - Floating glass header
+    - Professional typography (serif for headings, sans for body)
+  </Accordion>
+</AccordionGroup>
+
+### Modern & Minimalist Templates
+
+<AccordionGroup>
+  <Accordion title="DevTools (Linear-Style)" icon="terminal">
+    **Style:** Ultra-dark mode with minimalist borders and glowing accents  
+    **Best for:** Developer tools, CLIs, internal tools  
+    **Inspired by:** [Linear Docs](https://linear.app/docs)
+    
+    Features:
+    - Pure black background (#000)
+    - Neon accent colors
+    - Minimal chrome, maximum content
+  </Accordion>
+
+  <Accordion title="Minimalist (Vercel-Style)" icon="square">
+    **Style:** Brutalist black and white with heavy typography  
+    **Best for:** Modern SaaS products, design tools, no-nonsense documentation  
+    **Inspired by:** [Vercel Docs](https://vercel.com/docs)
+    
+    Features:
+    - Zero gradients, zero decorations
+    - Bold, confident typography
+    - Extremely fast load times
+  </Accordion>
+
+  <Accordion title="Open Source (Supabase-Style)" icon="leaf">
+    **Style:** Emerald greens, sleek typography, circular buttons  
+    **Best for:** Open source projects, community-driven tools  
+    **Inspired by:** [Supabase Docs](https://supabase.com/docs)
+    
+    Features:
+    - Vibrant emerald accent color (#10b981)
+    - Friendly, approachable tone
+    - Optimized for GitHub-centric workflows
+  </Accordion>
+</AccordionGroup>
+
+### Specialized Templates
+
+<AccordionGroup>
+  <Accordion title="Wiki (Notion-Style)" icon="book-open">
+    **Style:** Fluid width, elegant fonts, document-focused layout  
+    **Best for:** Internal wikis, knowledge bases, collaborative docs  
+    **Inspired by:** [Notion](https://notion.so)
+    
+    Features:
+    - Centered, max-width content
+    - Serif headings
+    - Inline comments and reactions (coming soon)
+  </Accordion>
+
+  <Accordion title="Component Lib (Tailwind-Style)" icon="grid">
+    **Style:** Dense left sidebar with sticky nav and interactive preview boxes  
+    **Best for:** UI libraries, component documentation, design systems  
+    **Inspired by:** [Tailwind CSS Docs](https://tailwindcss.com/docs)
+    
+    Features:
+    - Searchable component index
+    - Live code previews
+    - Copy-paste code snippets
+  </Accordion>
+
+  <Accordion title="Consumer Tech (Apple-Style)" icon="mobile">
+    **Style:** Frosted glass, large typography, soft rounded corners  
+    **Best for:** Consumer apps, hardware APIs, IoT devices  
+    **Inspired by:** [Apple Developer Docs](https://developer.apple.com/documentation/)
+    
+    Features:
+    - Premium aesthetic with glassmorphism
+    - Generous padding and spacing
+    - Focus on visual hierarchy
+  </Accordion>
+
+  <Accordion title="Deep Space" icon="moon">
+    **Style:** Dark navy backgrounds with starlight accents and glowing borders  
+    **Best for:** Space tech, astronomy APIs, dark-themed products  
+    
+    Features:
+    - Deep blue (#020510) base color
+    - Cyan accent highlights (#22d3ee)
+    - Subtle glow effects
+  </Accordion>
+
+  <Accordion title="Web3 / Gaming" icon="gamepad">
+    **Style:** Neon cyan/magenta accents, angled borders, futuristic layout  
+    **Best for:** Blockchain projects, NFT platforms, gaming APIs  
+    
+    Features:
+    - Bold neon colors (#d946ef magenta)
+    - Sharp, angular design elements
+    - High-energy aesthetic
+  </Accordion>
+
+  <Accordion title="Enterprise (AWS/IBM-Style)" icon="building">
+    **Style:** Highly structured with version dropdowns and callout blocks  
+    **Best for:** Enterprise software, B2B SaaS, complex systems  
+    **Inspired by:** [AWS Documentation](https://docs.aws.amazon.com/)
+    
+    Features:
+    - Multi-version support
+    - Structured navigation
+    - PDF export capability (coming soon)
+  </Accordion>
+</AccordionGroup>
+
+## Template Configuration
+
+All templates are defined in `client/src/config/templates.js`:
+
+```javascript
+export const DOC_TEMPLATES = [
+  {
+    id: 'twilio',
+    name: 'Twilio',
+    description: 'API-first layout inspired by Twilio\'s clean developer docs.',
+    previewUrl: 'https://placehold.co/600x400/111/fff?text=Twilio+Style',
+  },
+  // ... 13 more templates
+];
+```
+
+### Switching Templates
+
+You can change templates at any time from the [Live Editor](/features/live-editor):
+
+1. Open your project in the editor
+2. Click the **Settings** panel toggle
+3. Select a new template from the dropdown
+4. Click **Save & Deploy** — changes are live instantly
+
+<Tip>
+Templates are pure CSS transformations applied to your markdown. Switching templates does **not** regenerate your documentation.
+</Tip>
+
+## Template Rendering
+
+Each template is a React component that receives the project data:
+
+```jsx
+import TwilioTemplate from '../templates/TwilioTemplate';
+import FintechTemplate from '../templates/FintechTemplate';
+// ... other imports
+
+const TemplateMap = {
+    twilio: TwilioTemplate,
+    fintech: FintechTemplate,
+    mdn: MDNTemplate,
+    // ... 11 more mappings
+};
+
+const PreviewTemplate = TemplateMap[template] || TemplateMap.modern;
+
+return <PreviewTemplate project={previewProject} />;
+```
+
+## Customization Options
+
+All templates support the following customizations:
+
+| Option | Description | Example |
+|--------|-------------|----------|
+| **Logo URL** | Custom logo displayed in header | `https://example.com/logo.svg` |
+| **Owner Name** | Organization or author name | `Acme Inc.` |
+| **Current Version** | Active version badge | `v2.1.0` |
+| **Upcoming Version** | Roadmap version badge | `v3.0.0` |
+| **Navigation Links** | Custom header links | `[{ label: "GitHub", url: "..." }]` |
+
+<Note>
+Customization fields are configured in the [Project Settings](/features/custom-domains#project-customization) page.
+</Note>
+
+## Responsive Design
+
+All templates are fully responsive and optimized for:
+
+- Desktop (1920px+)
+- Laptop (1366px - 1920px)
+- Tablet (768px - 1366px)
+- Mobile (320px - 768px)
+
+<Warning>
+Some templates (like Fintech's split-pane layout) collapse to single-column on mobile for better readability.
+</Warning>
+
+## Adding New Templates
+
+To create a custom template:
+
+1. Add an entry to `client/src/config/templates.js`
+2. Create the component in `client/src/templates/YourTemplate.jsx`
+3. Register it in the `TemplateMap` inside `DocViewer.jsx`
+4. Add the `id` to the Mongoose enum in `server/models/Project.js`
+
+```javascript
+template: { 
+  type: String, 
+  enum: ['modern', 'minimal', 'twilio', /* ... */, 'your-template'], 
+  default: 'twilio' 
+}
+```
+
+## Template Performance
+
+All templates are optimized for Lighthouse scores:
+
+- **Performance:** 95+
+- **Accessibility:** 100
+- **Best Practices:** 100
+- **SEO:** 100
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Live Editor" icon="pencil" href="/features/live-editor">
+    Customize your documentation with the visual editor
+  </Card>
+  <Card title="Custom Domains" icon="globe" href="/features/custom-domains">
+    Host your docs on your own domain
+  </Card>
+</CardGroup>

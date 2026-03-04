@@ -1,0 +1,321 @@
+---
+title: Generation
+description: Monitor documentation generation status and receive real-time updates
+---
+
+## Overview
+
+Documentation generation is an asynchronous process managed by BullMQ. After creating a project, you can monitor its progress using job status endpoints or real-time SSE streaming.
+
+## Generation Process
+
+When you create a project, it goes through these stages:
+
+1. **Queued** - Added to generation queue
+2. **Scanning** - Repository files are being scanned
+3. **Analyzing** - Code structure is being analyzed
+4. **Generating** - Documentation is being generated
+5. **Ready** - Documentation complete and available
+6. **Failed** - Generation encountered an error
+
+## Get Job Status
+
+Retrieve the current status of a generation job.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/jobs/JOB_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+<ParamField path="id" type="string" required>
+  Job ID returned when creating a project
+</ParamField>
+
+<ResponseField name="jobId" type="string">
+  Job identifier
+</ResponseField>
+
+<ResponseField name="state" type="string">
+  Current job state:
+  - `waiting` - In queue
+  - `active` - Currently processing
+  - `completed` - Successfully finished
+  - `failed` - Job failed
+  - `delayed` - Delayed for retry
+</ResponseField>
+
+<ResponseField name="progress" type="number">
+  Progress percentage (0-100) or progress object
+</ResponseField>
+
+<ResponseField name="failedReason" type="string">
+  Error message if job failed
+</ResponseField>
+
+**Example Response:**
+
+```json
+{
+  "jobId": "abc123",
+  "state": "active",
+  "progress": 45,
+  "failedReason": null
+}
+```
+
+## Stream Generation Progress (SSE)
+
+Receive real-time updates using Server-Sent Events.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/PROJECT_ID/stream \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Accept: text/event-stream"
+```
+
+**Authentication:** Required
+
+<ParamField path="projectId" type="string" required>
+  Project unique identifier
+</ParamField>
+
+**Response:** Event stream with two event types:
+
+### Event: `status`
+
+Emitted when project status changes.
+
+```
+event: status
+data: {"status":"scanning","progress":25}
+
+event: status
+data: {"status":"analyzing","progress":50}
+
+event: status  
+data: {"status":"generating","progress":75}
+
+event: status
+data: {"status":"ready","progress":100}
+```
+
+### Event: `log`
+
+Emitted for generation logs and progress messages.
+
+```
+event: log
+data: {"message":"Cloning repository...","timestamp":"2024-03-04T10:30:00Z"}
+
+event: log
+data: {"message":"Analyzing 42 files...","timestamp":"2024-03-04T10:30:15Z"}
+
+event: log
+data: {"message":"Generating documentation...","timestamp":"2024-03-04T10:30:30Z"}
+```
+
+**JavaScript Example:**
+
+```javascript
+const eventSource = new EventSource(
+  'https://api.whatdoc.xyz/projects/PROJECT_ID/stream',
+  {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  }
+);
+
+eventSource.addEventListener('status', (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Status:', data.status, 'Progress:', data.progress);
+  
+  if (data.status === 'ready') {
+    eventSource.close();
+  }
+});
+
+eventSource.addEventListener('log', (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Log:', data.message);
+});
+
+eventSource.onerror = (error) => {
+  console.error('SSE Error:', error);
+  eventSource.close();
+};
+```
+
+**Python Example:**
+
+```python
+import requests
+import json
+
+headers = {
+    'Authorization': f'Bearer {token}',
+    'Accept': 'text/event-stream'
+}
+
+response = requests.get(
+    f'https://api.whatdoc.xyz/projects/{project_id}/stream',
+    headers=headers,
+    stream=True
+)
+
+for line in response.iter_lines():
+    if line:
+        line = line.decode('utf-8')
+        if line.startswith('event:'):
+            event_type = line.split(':', 1)[1].strip()
+        elif line.startswith('data:'):
+            data = json.loads(line.split(':', 1)[1])
+            print(f'{event_type}: {data}')
+```
+
+## Cancel Generation
+
+Request cancellation of an active generation job.
+
+```bash
+curl -X POST https://api.whatdoc.xyz/projects/PROJECT_ID/cancel \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+<ParamField path="projectId" type="string" required>
+  Project unique identifier
+</ParamField>
+
+<ResponseField name="message" type="string">
+  Success message: "Cancellation requested."
+</ResponseField>
+
+<Note>
+  Cancellation is a request and may not take effect immediately. The generation process will stop at the next checkpoint.
+</Note>
+
+## Smart Caching
+
+WhatDoc uses commit-based caching to optimize regeneration:
+
+- When creating a project, the latest commit SHA is fetched from GitHub
+- If the repository hasn't changed (same commit), regeneration may use cached data
+- This significantly speeds up documentation updates for unchanged repositories
+
+**Commit Hash Storage:**
+
+The `commitHash` field in the project object stores the commit SHA used for generation:
+
+```json
+{
+  "commitHash": "7a8f9b2c1d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a"
+}
+```
+
+## Queue Priority
+
+Generation jobs are prioritized based on plan tier:
+
+- **Pro users**: Priority `1` (highest)
+- **Free users**: Priority `10` (lower)
+
+Pro users' documentation generation starts faster during high-traffic periods.
+
+## Bring Your Own Key (BYOK)
+
+To use your own LLM API key, include these headers when creating a project:
+
+```bash
+curl -X POST https://api.whatdoc.xyz/projects \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-Custom-Api-Key: YOUR_LLM_API_KEY" \
+  -H "X-Target-Model: gemini-2.5-flash-lite" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "repoName": "owner/repo",
+    "slug": "my-docs",
+    "llmProvider": "gemini"
+  }'
+```
+
+<ParamField header="X-Custom-Api-Key" type="string">
+  Your LLM provider API key (must be at least 20 characters)
+</ParamField>
+
+<ParamField header="X-Target-Model" type="string" default="gemini-2.5-flash-lite">
+  Target model identifier:
+  - For Gemini: `gemini-2.5-flash-lite`, `gemini-pro`, etc.
+  - For OpenAI: `gpt-4`, `gpt-3.5-turbo`, etc.
+</ParamField>
+
+<Info>
+  Using your own API key allows you to:
+  - Use preferred models not available on shared infrastructure
+  - Have more control over generation costs
+  - Bypass potential rate limits on shared keys
+</Info>
+
+## Generation Errors
+
+Common generation errors:
+
+### Rate Limit Exceeded
+
+```json
+{
+  "error": "Too many generation requests."
+}
+```
+
+**Solution:** Wait 60 seconds before retrying.
+
+### Plan Limit Reached
+
+```json
+{
+  "error": "Free tier limit reached!",
+  "code": "UPGRADE_REQUIRED"
+}
+```
+
+**Solution:** Upgrade to Pro or redeem a promo code.
+
+### Repository Access Error
+
+If the repository is private and GitHub isn't connected:
+
+```json
+{
+  "error": "Failed to create project."
+}
+```
+
+**Solution:** Connect GitHub account with appropriate permissions.
+
+### Invalid Repository
+
+```json
+{
+  "error": "Failed to create project."
+}
+```
+
+**Solution:** Verify the repository name format is `owner/repo` and the repository exists.
+
+## Monitoring Best Practices
+
+<Tip>
+  **For real-time updates:** Use SSE streaming to get live progress updates without polling.
+</Tip>
+
+<Tip>
+  **For status checks:** Poll the job status endpoint every 5-10 seconds to check progress.
+</Tip>
+
+<Tip>
+  **For completed projects:** Once status is `ready`, fetch the project using the project ID to get the generated documentation.
+</Tip>

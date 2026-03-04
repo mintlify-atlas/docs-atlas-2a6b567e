@@ -1,0 +1,150 @@
+---
+title: "Generation Limits"
+description: "Understand documentation generation limits and repository caps for each WhatDoc tier"
+---
+
+# Generation Limits
+
+WhatDoc enforces different limits based on your subscription tier to ensure fair usage and system reliability.
+
+## Free Tier Limits
+
+### Documentation Generation Count
+
+Free tier users are limited by **generation count**, not repository count:
+
+```javascript
+const baseLimit = user.has5DocsLimit ? 5 : 2;
+const currentLimit = baseLimit + (user.promoGenerations || 0);
+```
+
+**Default Limit:** 2 documentation generations
+
+**Extended Limit:** 5 documentation generations (if `has5DocsLimit` is enabled)
+
+**Promotional Bonus:** Additional generations can be added through `promoGenerations`
+
+### How It Works
+
+Each time you generate documentation for a repository:
+
+1. Your `generationCount` increments by 1
+2. When `generationCount >= currentLimit`, you'll receive an error:
+   ```json
+   {
+     "error": "Free tier limit reached!",
+     "code": "UPGRADE_REQUIRED"
+   }
+   ```
+3. To continue generating docs, you'll need to upgrade to Pro
+
+### Example Scenarios
+
+**Standard Free User:**
+- Base limit: 2 docs
+- Promo generations: 0
+- **Total:** 2 documentation generations
+
+**Free User with Extended Access:**
+- Base limit: 5 docs (`has5DocsLimit: true`)
+- Promo generations: 0
+- **Total:** 5 documentation generations
+
+**Free User with Promo Code:**
+- Base limit: 2 docs
+- Promo generations: 3
+- **Total:** 5 documentation generations
+
+## Pro Tier Limits
+
+### Repository Count Limits
+
+Pro users have **unlimited regenerations** but are limited by the **number of repositories**:
+
+```javascript
+const repoCount = await Project.countDocuments({ userId: req.userId });
+const limit = user.planTier === '499' ? 10 : (user.planTier === '999' ? 25 : 0);
+```
+
+#### Pro Plan - Starter ($4.99/mo)
+
+- **Plan Tier:** `499`
+- **Repository Limit:** 10 repositories
+- **Regenerations:** Unlimited per repository
+
+#### Pro Plan - Growth ($9.99/mo)
+
+- **Plan Tier:** `999`
+- **Repository Limit:** 25 repositories
+- **Regenerations:** Unlimited per repository
+
+### How It Works
+
+When you try to add a new repository:
+
+1. System counts your existing projects
+2. Checks against your plan's repository limit
+3. If you've reached the limit, you'll receive:
+   ```json
+   {
+     "error": "Plan limit reached! Your plan allows up to {limit} repos.",
+     "code": "UPGRADE_REQUIRED"
+   }
+   ```
+
+### Regenerations Don't Count
+
+Once you've created a documentation project, you can regenerate it as many times as needed:
+
+- Update your code and regenerate docs
+- Try different templates
+- Switch LLM providers
+- No additional charges or limit decrements
+
+## Plan Expiry Behavior
+
+When a Pro subscription expires:
+
+```javascript
+if (user.isPro && user.proExpiryDate && new Date() > user.proExpiryDate) {
+  user.isPro = false;
+  user.planTier = 'free';
+  await user.save();
+}
+```
+
+**What happens:**
+- Your `isPro` status changes to `false`
+- Your `planTier` reverts to `'free'`
+- You're subject to free tier generation limits again
+- Existing documentation remains accessible (read-only)
+
+## Limit Comparison Table
+
+| Plan | Generation Limit | Repository Limit | Regenerations |
+|------|-----------------|------------------|---------------|
+| Free (Standard) | 2 docs | N/A | Included in count |
+| Free (Extended) | 5 docs | N/A | Included in count |
+| Free (w/ Promo) | 2-5 + bonus | N/A | Included in count |
+| Pro ($4.99) | Unlimited | 10 repos | Unlimited |
+| Pro ($9.99) | Unlimited | 25 repos | Unlimited |
+
+## Checking Your Usage
+
+Your current usage is tracked in your user profile:
+
+- **`generationCount`**: Total docs generated (free tier only)
+- **`promoGenerations`**: Bonus generations from promo codes
+- **`has5DocsLimit`**: Whether you have extended free access
+- **`planTier`**: Your current plan (`'free'`, `'499'`, or `'999'`)
+- **`proExpiryDate`**: When your Pro subscription expires
+
+## Need More Capacity?
+
+If you're hitting your limits:
+
+1. **Free users:** [Upgrade to Pro](/pricing/upgrade) for unlimited regenerations
+2. **Pro ($4.99) users:** Upgrade to Pro ($9.99) for 25 repository limit
+3. **Pro ($9.99) users:** Contact us for enterprise options
+
+See our [upgrade guide](/pricing/upgrade) for step-by-step instructions.

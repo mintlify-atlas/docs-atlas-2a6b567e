@@ -1,0 +1,502 @@
+---
+title: "Environment Variables"
+description: "Complete reference of all configuration options for WhatDoc server and client"
+---
+
+## Overview
+
+WhatDoc uses environment variables for all runtime configuration. Variables are split between the **server** (Express backend) and **client** (Vite frontend).
+
+> [!WARNING]
+> Never commit `.env` files to version control. Always use `.env.example` as a template and keep actual secrets secure.
+
+## Server Environment Variables
+
+Create `server/.env`:
+
+### Core Configuration
+
+#### `MONGO_URI`
+**Required** | `string`
+
+MongoDB connection string.
+
+```bash
+# Local MongoDB
+MONGO_URI=mongodb://localhost:27017/whatdoc
+
+# MongoDB Atlas
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/whatdoc?retryWrites=true&w=majority
+
+# Docker Compose
+MONGO_URI=mongodb://mongodb:27017/whatdoc
+```
+
+> [!TIP]
+> For production, use MongoDB Atlas with connection pooling enabled. Include `maxPoolSize=50` in the connection string for better performance.
+
+#### `JWT_SECRET`
+**Required** | `string` | Min 32 characters
+
+Secret key for signing JSON Web Tokens used in authentication.
+
+```bash
+JWT_SECRET=your-super-secret-random-string-min-32-chars
+```
+
+Generate a secure secret:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+> [!WARNING]
+> Using a weak JWT secret compromises all user sessions. Use a cryptographically secure random string.
+
+#### `PORT`
+**Optional** | `number` | Default: `3000`
+
+Port the Express server listens on.
+
+```bash
+PORT=3000
+```
+
+### AI/LLM Configuration
+
+#### `GEMINI_API_KEYS`
+**Required** | `string` (comma-separated)
+
+One or more Google Gemini API keys. Multiple keys enable round-robin rotation to avoid rate limits.
+
+```bash
+# Single key
+GEMINI_API_KEYS=AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz1234567
+
+# Multiple keys for rotation (recommended)
+GEMINI_API_KEYS=AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz1234567,AIzaSyBbCdEfGhIjKlMnOpQrStUvWxYz7654321,AIzaSyCbCdEfGhIjKlMnOpQrStUvWxYz9876543
+```
+
+**Key Format:**
+- Must be 39+ characters
+- Must start with `AIzaSy`
+- Invalid keys are automatically filtered out on startup
+
+**Get API Keys:** [Google AI Studio](https://aistudio.google.com/apikey)
+
+> [!NOTE]
+> The free tier has rate limits (~15 requests/minute per key). Use 3-5 keys for smooth operation with multiple users.
+
+#### `GEMINI_API_KEY`
+**Deprecated** | `string`
+
+Old single-key configuration. Still supported but `GEMINI_API_KEYS` is preferred.
+
+```bash
+GEMINI_API_KEY=AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz1234567
+```
+
+### CORS & Domain Configuration
+
+#### `CLIENT_URL`
+**Required** | `string`
+
+Frontend URL for CORS and OAuth redirects.
+
+```bash
+# Development
+CLIENT_URL=http://localhost:5173
+
+# Production
+CLIENT_URL=https://whatdoc.xyz
+```
+
+#### `CORS_ORIGINS`
+**Required** | `string` (comma-separated)
+
+Allowed origins for CORS. Automatically includes `CLIENT_URL` if not listed.
+
+```bash
+# Development
+CORS_ORIGINS=http://localhost:5173,http://localhost:4173
+
+# Production
+CORS_ORIGINS=https://whatdoc.xyz,https://www.whatdoc.xyz
+```
+
+> [!TIP]
+> WhatDoc automatically allows subdomains matching `APP_DOMAIN` and custom domains registered in the database.
+
+#### `APP_DOMAIN`
+**Required** | `string`
+
+Base domain for subdomain routing (e.g., `project.whatdoc.xyz`).
+
+```bash
+# Development
+APP_DOMAIN=localhost
+
+# Production
+APP_DOMAIN=whatdoc.xyz
+```
+
+### GitHub OAuth
+
+#### `GITHUB_CLIENT_ID`
+**Required for GitHub auth** | `string`
+
+GitHub OAuth application client ID.
+
+```bash
+GITHUB_CLIENT_ID=Iv1.a1b2c3d4e5f6g7h8
+```
+
+#### `GITHUB_CLIENT_SECRET`
+**Required for GitHub auth** | `string`
+
+GitHub OAuth application client secret.
+
+```bash
+GITHUB_CLIENT_SECRET=abc123def456ghi789jkl012mno345pqr678stu
+```
+
+#### `GITHUB_CALLBACK_URL`
+**Required for GitHub auth** | `string`
+
+OAuth callback URL registered with GitHub.
+
+```bash
+# Development
+GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
+
+# Production
+GITHUB_CALLBACK_URL=https://api.whatdoc.xyz/auth/github/callback
+```
+
+**Setup GitHub OAuth:**
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Create a new OAuth App
+3. Set Authorization callback URL to match `GITHUB_CALLBACK_URL`
+4. Copy Client ID and generate a Client Secret
+
+### Payment Gateway (Optional)
+
+#### `RAZORPAY_KEY_ID`
+**Optional** | `string`
+
+Razorpay API key ID for payment processing.
+
+```bash
+RAZORPAY_KEY_ID=rzp_live_AbCdEfGhIjKlMn
+```
+
+#### `RAZORPAY_KEY_SECRET`
+**Optional** | `string`
+
+Razorpay API key secret.
+
+```bash
+RAZORPAY_KEY_SECRET=AbCdEfGhIjKlMnOpQrStUvWxYz123456
+```
+
+> [!NOTE]
+> If not provided, defaults to `TEST_KEY` and `TEST_SECRET` for development.
+
+### Promo Codes & Feature Flags
+
+#### `PRO_CODE`
+**Optional** | `string`
+
+Promo code to unlock Pro features.
+
+```bash
+PRO_CODE=WHATDOC_PRO_2024
+```
+
+#### `FREE5DOCS_CODE`
+**Optional** | `string` | Default: `FREE5DOCS`
+
+Promo code to unlock 5 free documents.
+
+```bash
+FREE5DOCS_CODE=FREE5DOCS
+```
+
+#### `PROMO_10GEN_CODE`
+**Optional** | `string` | Default: `WHATDOCFAM`
+
+Promo code for 10 free generations.
+
+```bash
+PROMO_10GEN_CODE=WHATDOCFAM
+```
+
+#### `PROMO_10GEN_LIMIT`
+**Optional** | `number` | Default: `100`
+
+Maximum number of uses for the 10-generation promo code.
+
+```bash
+PROMO_10GEN_LIMIT=100
+```
+
+### Redis Queue (Optional)
+
+#### `REDIS_URL`
+**Optional** | `string`
+
+Redis connection string for BullMQ job queue. Enables background processing.
+
+```bash
+# Local Redis
+REDIS_URL=redis://127.0.0.1:6379
+
+# Upstash (TLS)
+REDIS_URL=rediss://default:password@upstash.redis.com:6379
+
+# Docker Compose
+REDIS_URL=redis://redis:6379
+```
+
+> [!TIP]
+> Redis is optional but recommended for production. Without it, documentation generation blocks the main thread.
+
+### Cloudflare Integration (Optional)
+
+#### `CLOUDFLARE_ZONE_ID`
+**Optional** | `string`
+
+Cloudflare zone ID for DNS management.
+
+```bash
+CLOUDFLARE_ZONE_ID=abc123def456ghi789jkl012mno345pq
+```
+
+#### `CLOUDFLARE_API_TOKEN`
+**Optional** | `string`
+
+Cloudflare API token with DNS edit permissions.
+
+```bash
+CLOUDFLARE_API_TOKEN=AbCdEfGhIjKlMnOpQrStUvWxYz-1234567890
+```
+
+### Vercel Integration (Optional)
+
+#### `VERCEL_PROJECT_ID`
+**Optional** | `string`
+
+Vercel project ID for custom domain management.
+
+```bash
+VERCEL_PROJECT_ID=prj_AbCdEfGhIjKlMnOpQrStUvWxYz
+```
+
+#### `VERCEL_API_TOKEN`
+**Optional** | `string`
+
+Vercel API token for domain API access.
+
+```bash
+VERCEL_API_TOKEN=AbCdEfGhIjKlMnOpQrStUvWxYz1234567890
+```
+
+---
+
+## Client Environment Variables
+
+Create `client/.env`:
+
+### Core Configuration
+
+#### `VITE_API_URL`
+**Required** | `string`
+
+Backend API base URL.
+
+```bash
+# Development
+VITE_API_URL=http://localhost:3000
+
+# Production
+VITE_API_URL=https://api.whatdoc.xyz
+```
+
+> [!NOTE]
+> Vite environment variables must be prefixed with `VITE_` to be exposed to the client.
+
+#### `VITE_APP_DOMAIN`
+**Required** | `string`
+
+Domain for subdomain resolution.
+
+```bash
+# Development
+VITE_APP_DOMAIN=localhost:5173
+
+# Production
+VITE_APP_DOMAIN=whatdoc.xyz
+```
+
+### Firebase (Optional)
+
+Used for analytics or additional auth methods.
+
+#### `VITE_FIREBASE_API_KEY`
+**Optional** | `string`
+
+```bash
+VITE_FIREBASE_API_KEY=AIzaSyBbCdEfGhIjKlMnOpQrStUvWxYz1234567
+```
+
+#### `VITE_FIREBASE_AUTH_DOMAIN`
+**Optional** | `string`
+
+```bash
+VITE_FIREBASE_AUTH_DOMAIN=your-app.firebaseapp.com
+```
+
+#### `VITE_FIREBASE_PROJECT_ID`
+**Optional** | `string`
+
+```bash
+VITE_FIREBASE_PROJECT_ID=your-app
+```
+
+#### `VITE_FIREBASE_STORAGE_BUCKET`
+**Optional** | `string`
+
+```bash
+VITE_FIREBASE_STORAGE_BUCKET=your-app.appspot.com
+```
+
+#### `VITE_FIREBASE_MESSAGING_SENDER_ID`
+**Optional** | `string`
+
+```bash
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789012
+```
+
+#### `VITE_FIREBASE_APP_ID`
+**Optional** | `string`
+
+```bash
+VITE_FIREBASE_APP_ID=1:123456789012:web:abcdef1234567890
+```
+
+### Cloudinary (Optional)
+
+Used for avatar uploads in user profiles.
+
+#### `VITE_CLOUDINARY_CLOUD_NAME`
+**Optional** | `string`
+
+```bash
+VITE_CLOUDINARY_CLOUD_NAME=your-cloud-name
+```
+
+#### `VITE_CLOUDINARY_UPLOAD_PRESET`
+**Optional** | `string`
+
+```bash
+VITE_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
+```
+
+---
+
+## Complete Example Configurations
+
+### Development Setup
+
+**server/.env:**
+```bash
+MONGO_URI=mongodb://localhost:27017/whatdoc
+JWT_SECRET=dev-secret-min-32-characters-long-string
+GEMINI_API_KEYS=AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz1234567
+PORT=3000
+CLIENT_URL=http://localhost:5173
+CORS_ORIGINS=http://localhost:5173,http://localhost:4173
+APP_DOMAIN=localhost
+GITHUB_CLIENT_ID=Iv1.a1b2c3d4e5f6g7h8
+GITHUB_CLIENT_SECRET=abc123def456ghi789jkl012mno345pqr678stu
+GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
+```
+
+**client/.env:**
+```bash
+VITE_API_URL=http://localhost:3000
+VITE_APP_DOMAIN=localhost:5173
+```
+
+### Production Setup
+
+**server/.env:**
+```bash
+MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/whatdoc
+JWT_SECRET=prod-secret-generated-with-crypto-randomBytes
+GEMINI_API_KEYS=AIzaSyKey1,AIzaSyKey2,AIzaSyKey3
+PORT=3000
+CLIENT_URL=https://whatdoc.xyz
+CORS_ORIGINS=https://whatdoc.xyz,https://www.whatdoc.xyz
+APP_DOMAIN=whatdoc.xyz
+GITHUB_CLIENT_ID=Iv1.prod_client_id
+GITHUB_CLIENT_SECRET=prod_client_secret
+GITHUB_CALLBACK_URL=https://api.whatdoc.xyz/auth/github/callback
+REDIS_URL=rediss://default:pass@upstash.redis.com:6379
+RAZORPAY_KEY_ID=rzp_live_key
+RAZORPAY_KEY_SECRET=razorpay_secret
+PRO_CODE=WHATDOC_PRO_2024
+```
+
+**client/.env:**
+```bash
+VITE_API_URL=https://api.whatdoc.xyz
+VITE_APP_DOMAIN=whatdoc.xyz
+```
+
+---
+
+## Validation & Troubleshooting
+
+### Check Server Configuration
+
+```bash
+cd server
+node -e "require('dotenv').config(); console.log(process.env.MONGO_URI ? '✓ MONGO_URI set' : '✗ MONGO_URI missing')"
+```
+
+### Verify Gemini API Keys
+
+The server validates keys on startup:
+
+```bash
+cd server
+npm start
+# Look for: "🔑 Key rotator loaded: X valid key(s) out of Y provided"
+```
+
+### Common Issues
+
+**Server won't start:**
+- Ensure `MONGO_URI` is correct and MongoDB is running
+- Verify `JWT_SECRET` is at least 32 characters
+- Check `GEMINI_API_KEYS` format (must start with `AIzaSy`)
+
+**CORS errors:**
+- Add frontend URL to `CORS_ORIGINS`
+- Verify `CLIENT_URL` matches actual frontend URL
+- Check `APP_DOMAIN` for subdomain routing
+
+**GitHub OAuth fails:**
+- Ensure `GITHUB_CALLBACK_URL` matches GitHub app settings exactly
+- Verify `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` are correct
+- Check that callback URL is reachable from GitHub servers
+
+**Rate limiting issues:**
+- Add more API keys to `GEMINI_API_KEYS` for rotation
+- Consider upgrading to Gemini Pro for higher limits
+- Enable Redis for queue-based processing
+
+> [!WARNING]
+> If you change `JWT_SECRET` in production, all existing user sessions will be invalidated and users will need to log in again.

@@ -1,0 +1,284 @@
+---
+title: Customizing Your Documentation
+description: Add logos, branding, navigation links, and customize the appearance of your generated documentation
+---
+
+## Overview
+
+WhatDoc provides powerful customization options to match your documentation to your brand. You can edit content, add logos, configure navigation, and switch between design templates—all from the editor.
+
+## Accessing the Editor
+
+There are two ways to customize your documentation:
+
+1. **From Dashboard**: Click the **Edit** button on any project card
+2. **Direct URL**: Navigate to `/editor/:projectId`
+
+The editor provides a live preview alongside your markdown content for real-time editing.
+
+## Editor Interface
+
+The editor is a split-pane interface:
+
+- **Left Pane**: Markdown editor with settings drawer
+- **Right Pane**: Live preview of your documentation
+- **Top Bar**: Save & Deploy button, toggle controls
+
+### Keyboard Shortcuts
+
+- `Ctrl+S` (Windows/Linux) or `Cmd+S` (Mac): Save & Deploy
+
+## Customization Options
+
+All customization is stored in the `customization` field of your project model:
+
+```javascript
+customization: {
+  logoUrl: String,
+  ownerName: String,
+  currentVersion: String,
+  upcomingVersion: String,
+  navLinks: [{ label: String, url: String }]
+}
+```
+
+### Logo URL
+
+<Steps>
+  <Step title="Upload Your Logo">
+    Host your logo image on a CDN or image hosting service (e.g., Imgur, Cloudinary, GitHub).
+  </Step>
+
+  <Step title="Copy the Image URL">
+    Get the direct URL to your logo image (e.g., `https://example.com/logo.svg`).
+  </Step>
+
+  <Step title="Add to Editor">
+    In the settings drawer, paste the URL into the **Logo URL** field.
+    
+    Supported formats: SVG, PNG, JPG, WebP
+  </Step>
+
+  <Step title="Preview & Save">
+    Your logo appears instantly in the live preview. Click **Save & Deploy** to publish.
+  </Step>
+</Steps>
+
+<Info>
+  The logo is displayed in the documentation header/sidebar depending on the selected template.
+</Info>
+
+### Owner Name
+
+Set the name or organization that appears in your documentation:
+
+- **Field**: `ownerName`
+- **Usage**: Displayed in footers, headers, or "About" sections
+- **Example**: `"Acme Inc."`, `"Open Source Team"`
+
+This personalizes the documentation to reflect your brand or project ownership.
+
+### Version Management
+
+Display current and upcoming versions:
+
+- **Current Version**: The active release (e.g., `"1.0.0"`)
+- **Upcoming Version**: The next planned release (e.g., `"2.0.0"`)
+
+Some templates display version badges or dropdowns for version-specific documentation.
+
+### Navigation Links
+
+<Warning>
+  Custom navigation links are defined in the `customization.navLinks` array field but are **template-dependent**. Not all templates render these links. Check your selected template's implementation.
+</Warning>
+
+Add custom navigation links to your documentation:
+
+```javascript
+navLinks: [
+  { label: "GitHub", url: "https://github.com/user/repo" },
+  { label: "Discord", url: "https://discord.gg/..." },
+  { label: "API Status", url: "https://status.example.com" }
+]
+```
+
+These links typically appear in the header or sidebar navigation, allowing users to quickly access external resources.
+
+## Template Selection
+
+Switch between 16 design templates from the **Template** dropdown in the settings drawer:
+
+### Free Templates
+
+- **Modern**: Clean, modern design with sidebar navigation
+- **Minimal**: Minimalist approach with focus on content
+- **Twilio**: Inspired by Twilio's documentation (default)
+- **Django**: Python/Django-style documentation
+- **MDN**: Mozilla Developer Network aesthetic
+- **AeroLatex**: Academic/LaTeX-inspired design
+
+### Premium Templates
+
+<Note>
+  Premium templates require:
+  - Pro subscription, OR
+  - Promo code `WHATDOCFAM` (unlocks `hasPremiumTemplates: true`)
+</Note>
+
+- **Fintech**: Financial services styling
+- **DevTools**: Developer tools theme
+- **Minimalist**: Ultra-minimal single-column
+- **OpenSource**: Community-driven open source look
+- **Wiki**: Wikipedia-inspired knowledge base
+- **ComponentLib**: Component library showcase
+- **ConsumerTech**: Consumer app documentation
+- **DeepSpace**: Dark, space-themed design
+- **Web3**: Blockchain/Web3 aesthetic
+- **Enterprise**: Corporate enterprise style
+
+Each template has unique layouts, color schemes, and component styles.
+
+## Editing Markdown Content
+
+The generated documentation is stored as markdown in `project.generatedDocs`. You can edit it freely:
+
+1. **Direct Editing**: Modify content in the left-pane textarea
+2. **Live Preview**: Changes render instantly in the right pane
+3. **Character Count**: Bottom-left displays total characters
+4. **Auto-Save**: Changes are saved only when you click **Save & Deploy**
+
+### Markdown Support
+
+WhatDoc supports standard markdown with common extensions:
+
+- Headers (`#`, `##`, `###`, etc.)
+- Lists (ordered, unordered, nested)
+- Code blocks with syntax highlighting
+- Tables
+- Links and images
+- Blockquotes
+- Horizontal rules
+
+Specific template components may include additional custom markdown extensions.
+
+## Settings Drawer
+
+The settings drawer is collapsible for more editing space:
+
+- **Toggle**: Click the **Settings** icon in the top bar
+- **Fields**:
+  - **Subdomain**: Set your custom subdomain (e.g., `my-org.whatdoc.xyz`)
+  - **Logo URL**: Link to your logo image
+  - **Template**: Select design template
+  - **Owner Name**: Your organization/project name
+  - **Version**: Current release version
+  - **Upcoming**: Next planned version
+
+All fields update the live preview in real-time.
+
+## Subdomain Configuration
+
+Set a custom subdomain directly from the editor:
+
+```
+https://your-subdomain.whatdoc.xyz
+```
+
+**Requirements:**
+- Lowercase letters, numbers, and hyphens only
+- Must be unique across all WhatDoc projects
+- Automatically sanitized on input
+
+For more details on subdomains and custom domains, see [Deploying Docs](/guides/deploying-docs).
+
+## Save & Deploy
+
+When you click **Save & Deploy**, WhatDoc updates your project with:
+
+```javascript
+await projectApi.update(projectId, {
+  subdomain,
+  template,
+  generatedDocs: docs,
+  customization: {
+    logoUrl,
+    ownerName,
+    currentVersion,
+    upcomingVersion
+  }
+});
+```
+
+Your changes go live immediately at your documentation URL.
+
+<Info>
+  Unsaved changes are **not** persisted. Always click **Save & Deploy** before closing the editor.
+</Info>
+
+## Project Settings Page
+
+For advanced configuration, visit `/settings/:projectId`:
+
+- **General**: Edit project slug, view repository info
+- **Domains**: Configure subdomain and custom domains
+- **Version History**: View past generation runs (coming soon: rollback)
+
+## Preview Controls
+
+- **Toggle Preview**: Hide/show the live preview pane for fullscreen editing
+- **Toggle Settings**: Collapse/expand the settings drawer for more vertical space
+
+Both controls are accessible from the top bar.
+
+## Templates Configuration via Model
+
+The `Project` model defines the template field:
+
+```javascript
+template: {
+  type: String,
+  enum: [
+    'modern', 'minimal', 'twilio', 'django', 'mdn', 'aerolatex',
+    'fintech', 'devtools', 'minimalist', 'opensource', 'wiki',
+    'componentlib', 'consumertech', 'deepspace', 'web3', 'enterprise'
+  ],
+  default: 'twilio'
+}
+```
+
+The `isPremium` flag determines access to premium templates:
+
+```javascript
+isPremium: user.isPro || user.hasPremiumTemplates || false
+```
+
+## Customization Best Practices
+
+<Check>
+  **Do:**
+  - Use high-resolution logos (SVG preferred)
+  - Test navigation links before saving
+  - Keep version numbers semantic (e.g., `1.2.3`)
+  - Save frequently to avoid losing changes
+  - Preview on different screen sizes
+</Check>
+
+<Warning>
+  **Don't:**
+  - Use extremely large logo images (slow page loads)
+  - Link to broken or private URLs
+  - Forget to save before closing the editor
+  - Include sensitive data in public docs
+</Warning>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Deploying Docs" icon="rocket" href="/guides/deploying-docs">
+    Deploy to a custom subdomain or domain
+  </Card>
+  <Card title="BYOK" icon="key" href="/guides/byok">
+    Use your own API key for unlimited generation
+  </Card>
+</CardGroup>

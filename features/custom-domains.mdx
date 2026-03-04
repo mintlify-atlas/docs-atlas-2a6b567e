@@ -1,0 +1,325 @@
+---
+title: "Custom Domains & Subdomains"
+description: "Host your documentation on your own subdomain or custom domain with automatic SSL provisioning"
+---
+
+WhatDoc provides flexible hosting options so you can serve your documentation under your brand. Choose between a free subdomain (e.g., `your-org.whatdoc.xyz`) or bring your own custom domain (e.g., `docs.your-startup.com`).
+
+## Subdomain Hosting
+
+Every project gets a unique, SEO-friendly subdomain on `whatdoc.xyz`.
+
+### Setting Up a Subdomain
+
+1. Navigate to your project's **Settings** page
+2. Go to the **Domains** tab
+3. Enter your desired subdomain (e.g., `my-api`)
+4. Click **Save Subdomain**
+
+Your documentation will be instantly available at:
+
+```
+https://my-api.whatdoc.xyz
+```
+
+<Note>
+Subdomains must be unique across **all** WhatDoc projects. Only lowercase letters, numbers, and hyphens are allowed.
+</Note>
+
+### Subdomain Rules
+
+The frontend automatically sanitizes your input:
+
+```jsx
+setSubdomain(
+  e.target.value
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+);
+```
+
+**Valid examples:**
+- `my-api` → `my-api.whatdoc.xyz`
+- `acme-docs` → `acme-docs.whatdoc.xyz`
+- `v2` → `v2.whatdoc.xyz`
+
+**Invalid examples:**
+- `My_API` (uppercase, underscore) → Converted to `myapi`
+- `hello--world` (double hyphen) → Converted to `hello-world`
+
+### Subdomain Database Schema
+
+Subdomains are stored in the Project model:
+
+```javascript
+const projectSchema = new mongoose.Schema({
+  subdomain: { 
+    type: String, 
+    unique: true,        // Must be globally unique
+    lowercase: true,     // Automatically lowercased
+    sparse: true         // Allows null values (optional field)
+  },
+  // ... other fields
+});
+```
+
+<Warning>
+If you try to claim a subdomain that's already taken, the API will return a `400` error:
+
+```json
+{
+  "error": "Subdomain is taken."
+}
+```
+</Warning>
+
+## Custom Domain Hosting
+
+Pro users can connect their own custom domain (e.g., `docs.example.com`) with automatic SSL provisioning via Cloudflare.
+
+<Note>
+Custom domains are currently in **beta testing mode**. SSL provisioning can occasionally take up to 24 hours due to DNS propagation.
+</Note>
+
+### Setting Up a Custom Domain
+
+1. Navigate to your project's **Settings** → **Domains** tab
+2. Scroll to the **Custom Domain** section
+3. Enter your domain (e.g., `docs.example.com`)
+4. Click **Connect**
+5. Update your DNS records (instructions below)
+
+### DNS Configuration
+
+After connecting your domain, WhatDoc displays the required DNS records:
+
+```bash
+// ACTION_REQUIRED: Update your DNS records
+TYPE    CNAME
+NAME    docs
+TARGET  cname.whatdoc.xyz
+```
+
+#### Step-by-Step DNS Setup
+
+<Steps>
+  <Step title="Access your DNS provider">
+    Log in to your domain registrar (Cloudflare, Namecheap, GoDaddy, etc.)
+  </Step>
+  
+  <Step title="Create a CNAME record">
+    Add a new CNAME record with the following values:
+    
+    - **Type:** `CNAME`
+    - **Name:** `docs` (or your subdomain)
+    - **Target:** `cname.whatdoc.xyz`
+    - **TTL:** `Auto` or `3600`
+  </Step>
+  
+  <Step title="Save and wait for propagation">
+    DNS changes can take 5 minutes to 48 hours to propagate globally. Use [DNS Checker](https://dnschecker.org/) to monitor progress.
+  </Step>
+  
+  <Step title="SSL certificate provisioning">
+    Once DNS propagates, Cloudflare automatically provisions an SSL certificate. Your docs will be accessible via HTTPS within 24 hours.
+  </Step>
+</Steps>
+
+### Custom Domain Code Implementation
+
+The custom domain update handler in `ProjectSettings.jsx`:
+
+```jsx
+const handleSaveCustomDomain = async () => {
+    const sanitized = customDomain
+        .toLowerCase()
+        .replace(/[^a-z0-9.-]/g, '')
+        .trim();
+    
+    setSavingCustomDomain(true);
+    
+    try {
+        const data = await projectApi.update(projectId, { 
+            customDomain: sanitized || null 
+        });
+        
+        setProject(data.project);
+        setCustomDomain(data.project.customDomain || '');
+        setToast({ type: 'success', message: 'Custom domain updated.' });
+    } catch (err) {
+        setToast({ 
+            type: 'error', 
+            message: err.error || 'Custom domain update failed. It may be in use.' 
+        });
+    } finally {
+        setSavingCustomDomain(false);
+    }
+};
+```
+
+### Custom Domain Database Schema
+
+```javascript
+const projectSchema = new mongoose.Schema({
+  customDomain: { 
+    type: String, 
+    unique: true,        // Globally unique
+    lowercase: true,     // Force lowercase
+    sparse: true         // Allows null
+  },
+  subdomain: { type: String, unique: true, sparse: true },
+  // ... other fields
+});
+```
+
+<Tip>
+Both `subdomain` and `customDomain` can coexist. If both are set, the custom domain takes precedence for routing.
+</Tip>
+
+## Domain Resolution Priority
+
+WhatDoc resolves documentation URLs in the following order:
+
+1. **Custom Domain** (if configured): `https://docs.example.com`
+2. **Subdomain** (if configured): `https://my-org.whatdoc.xyz`
+3. **Fallback Path**: `https://whatdoc.xyz/p/{project-slug}`
+
+### URL Generation Logic
+
+```jsx
+const liveUrl = project.subdomain
+    ? `https://${project.subdomain}.${APP_DOMAIN}`
+    : `https://${APP_DOMAIN}/p/${project.slug}`;
+```
+
+## SSL & Security
+
+All documentation sites (subdomains and custom domains) are served over HTTPS:
+
+- **Subdomain SSL:** Automatically provisioned via Cloudflare Universal SSL
+- **Custom Domain SSL:** Automatically provisioned after DNS verification (up to 24 hours)
+- **TLS Version:** 1.2+
+- **HSTS:** Enabled (max-age=31536000)
+
+<Warning>
+If your custom domain is behind Cloudflare proxy, ensure SSL mode is set to **Full (strict)** to avoid redirect loops.
+</Warning>
+
+## Troubleshooting
+
+### Subdomain Issues
+
+<AccordionGroup>
+  <Accordion title="Error: Subdomain is taken">
+    The subdomain you're trying to claim is already in use. Try a different name or add a prefix/suffix (e.g., `my-api-docs` instead of `api`).
+  </Accordion>
+  
+  <Accordion title="Subdomain not resolving">
+    Subdomain changes are instant. If you can't access your subdomain:
+    
+    1. Clear your browser cache
+    2. Try incognito mode
+    3. Check that you saved the subdomain (look for the success toast)
+  </Accordion>
+</AccordionGroup>
+
+### Custom Domain Issues
+
+<AccordionGroup>
+  <Accordion title="DNS not propagating">
+    DNS propagation can take up to 48 hours. Check your DNS records using:
+    
+    ```bash
+    dig docs.example.com
+    ```
+    
+    You should see a CNAME record pointing to `cname.whatdoc.xyz`.
+  </Accordion>
+  
+  <Accordion title="SSL certificate not provisioning">
+    SSL certificates are automatically issued after DNS verification. If it's been more than 24 hours:
+    
+    1. Verify your CNAME record is correct
+    2. Ensure your domain is not proxied through multiple CDNs
+    3. Contact support at hello@whatdoc.xyz
+  </Accordion>
+  
+  <Accordion title="ERR_TOO_MANY_REDIRECTS">
+    This usually happens when Cloudflare SSL mode is set to **Flexible**. Change it to **Full (strict)** in your Cloudflare dashboard.
+  </Accordion>
+</AccordionGroup>
+
+## Domain Management UI
+
+The domains tab in Project Settings provides:
+
+- **Real-time validation** of subdomain availability
+- **Visual DNS instructions** with copy-paste CNAME values
+- **Current domain status** with live URL preview
+- **One-click copy** for sharing your docs URL
+
+```jsx
+<button
+    onClick={handleCopy}
+    className="h-10 w-10 rounded-lg border border-zinc-800"
+    title="Copy URL"
+>
+    {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+</button>
+```
+
+## API Endpoints
+
+### Update Subdomain
+
+```bash
+PATCH /api/projects/:id
+Content-Type: application/json
+
+{
+  "subdomain": "my-api"
+}
+```
+
+### Update Custom Domain
+
+```bash
+PATCH /api/projects/:id
+Content-Type: application/json
+
+{
+  "customDomain": "docs.example.com"
+}
+```
+
+### Remove Custom Domain
+
+```bash
+PATCH /api/projects/:id
+Content-Type: application/json
+
+{
+  "customDomain": null
+}
+```
+
+## Pricing
+
+| Feature | Free Tier | Pro Tier |
+|---------|-----------|----------|
+| Subdomain Hosting | ✅ Unlimited | ✅ Unlimited |
+| Custom Domains | ❌ Not available | ✅ Up to 5 per account |
+| SSL Certificates | ✅ Automatic | ✅ Automatic |
+| DNS Management | N/A | ✅ Priority support |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Project Settings" icon="gear" href="/guides/customizing-docs">
+    Configure your project's subdomain and custom domain
+  </Card>
+  <Card title="Live Editor" icon="pencil" href="/features/live-editor">
+    Edit and preview your documentation in real-time
+  </Card>
+</CardGroup>

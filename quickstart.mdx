@@ -1,80 +1,463 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Generate your first AI-powered documentation in under 5 minutes
 ---
 
-## Get started in three steps
+# Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+Get from zero to deployed documentation in 5 minutes. This guide walks you through creating your WhatDoc account, connecting GitHub, and generating your first docs.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  **Prerequisites:** A GitHub account and a repository you want to document (public or private).
+</Note>
+
+## Step 1: Create Your Account
+
+Head to [whatdoc.xyz](https://whatdoc.xyz) and sign up.
+
+<Steps>
+  <Step title="Visit the landing page">
+    Navigate to [whatdoc.xyz](https://whatdoc.xyz) and click **Sign Up**.
+  </Step>
+  
+  <Step title="Choose your sign-up method">
+    Sign up with:
+    - **Email & Password** - Traditional sign-up flow
+    - **Google OAuth** - One-click sign-up with your Google account
+    
+    ```json
+    // Example user object after signup
+    {
+      "email": "dev@example.com",
+      "firstName": "Alex",
+      "lastName": "Developer",
+      "isPro": false,
+      "generationCount": 0,
+      "planTier": "free"
+    }
+    ```
+  </Step>
+  
+  <Step title="Verify and log in">
+    After signup, you'll be redirected to your dashboard at `/dashboard`.
+  </Step>
+</Steps>
+
+## Step 2: Connect Your GitHub Account
+
+Connect GitHub to access your repositories.
+
+<Steps>
+  <Step title="Navigate to Import">
+    From your dashboard, click **Deploy Docs** or navigate to `/import`.
+  </Step>
+  
+  <Step title="Authorize GitHub OAuth">
+    Click **Connect GitHub** and choose your permissions:
+    
+    <Tabs>
+      <Tab title="Public repos only">
+        Uncheck "Include private repositories" — WhatDoc will only see your public repos.
+      </Tab>
+      <Tab title="Public + Private repos">
+        Keep "Include private repositories" checked — WhatDoc can access all your repos (recommended).
+      </Tab>
+    </Tabs>
+    
+    <Warning>
+      Your GitHub access token is stored securely in the database and only used to fetch repository metadata. WhatDoc never modifies your code.
+    </Warning>
+  </Step>
+  
+  <Step title="Authorization callback">
+    After authorizing, you'll be redirected back to WhatDoc with your repos loaded:
+    
+    ```javascript
+    // GET /api/auth/github/repos returns:
+    {
+      "repos": [
+        {
+          "id": 123456,
+          "name": "my-api",
+          "fullName": "username/my-api",
+          "private": false,
+          "language": "JavaScript",
+          "description": "A REST API for...",
+          "url": "https://github.com/username/my-api",
+          "updatedAt": "2026-03-01T10:30:00Z"
+        }
+      ],
+      "username": "username"
+    }
+    ```
+  </Step>
+</Steps>
+
+## Step 3: Import a Repository
+
+Select the repository you want to document.
+
+<Steps>
+  <Step title="Browse your repositories">
+    You'll see a list of all your repos with:
+    - **Language indicator** (colored dot)
+    - **Visibility badge** (lock icon for private repos)
+    - **Last updated timestamp**
+    - **Search & filter** options
+  </Step>
+  
+  <Step title="Search or filter">
+    Use the search bar to find a specific repo, or filter by:
+    - All repos
+    - Public only
+    - Private only
+  </Step>
+  
+  <Step title="Click Import">
+    Click the **Import** button next to your chosen repository. You'll be redirected to the configuration page.
+  </Step>
+</Steps>
+
+## Step 4: Configure Your Documentation
+
+Customize your documentation settings before generation.
+
+<Steps>
+  <Step title="Set your URL slug">
+    Choose a URL slug for your docs:
+    
+    ```
+    whatdoc.xyz/p/my-awesome-api
+                  ^^^^^^^^^^^^^^^^
+                  your slug here
+    ```
+    
+    <Note>
+      Slugs must be lowercase with only letters, numbers, and hyphens.
+    </Note>
+  </Step>
+  
+  <Step title="Choose your tech stack">
+    Select your project type (optional, helps the AI understand your code):
+    - **MERN** - MongoDB, Express, React, Node.js
+    - **Next.js** - Next.js full-stack apps
+    - **Other** - Everything else (auto-detected)
+  </Step>
+  
+  <Step title="Pick a template">
+    Choose from 14+ professional templates:
+    
+    <Tabs>
+      <Tab title="Twilio">
+        API-first dark layout — best for REST APIs
+      </Tab>
+      <Tab title="Django">
+        Classic two-column docs — best for frameworks
+      </Tab>
+      <Tab title="MDN">
+        Reference-style — best for technical documentation
+      </Tab>
+      <Tab title="AeroLaTeX">
+        Academic glassmorphic — best for research projects
+      </Tab>
+      <Tab title="More...">
+        Fintech, DevTools, Minimalist, Open Source, Wiki, Component Lib, Consumer Tech, Deep Space, Web3, Enterprise
+      </Tab>
+    </Tabs>
+    
+    ```javascript
+    // Available template IDs (server/models/Project.js:15)
+    const templates = [
+      'twilio', 'django', 'mdn', 'aerolatex',
+      'fintech', 'devtools', 'minimalist', 'opensource',
+      'wiki', 'componentlib', 'consumertech', 'deepspace',
+      'web3', 'enterprise'
+    ];
+    ```
+  </Step>
+  
+  <Step title="(Optional) Bring Your Own Key">
+    For unthrottled generation, provide your own API key:
+    
+    <CodeGroup>
+      ```bash Gemini (Free)
+      # Get free key from Google AI Studio
+      # https://aistudio.google.com/app/apikey
+      AIzaSy...
+      ```
+      
+      ```bash OpenAI (Paid)
+      # Get key from OpenAI Platform
+      # https://platform.openai.com/api-keys
+      sk-proj-...
+      ```
+      
+      ```bash Claude (Paid)
+      # Get key from Anthropic Console
+      # https://console.anthropic.com/settings/keys
+      sk-ant-...
+      ```
+    </CodeGroup>
+    
+    <Warning>
+      Your API key stays in your browser's `localStorage` and is only sent directly to the AI provider — never stored on WhatDoc servers.
+    </Warning>
+  </Step>
+  
+  <Step title="Deploy">
+    Click **Deploy Documentation** to start the generation pipeline.
+  </Step>
+</Steps>
+
+## Step 5: Watch the Generation Process
+
+Your docs are generated in real-time via Server-Sent Events (SSE).
+
+<Steps>
+  <Step title="Cloning repository">
+    WhatDoc shallow-clones your repo to a temporary directory:
+    
+    ```bash
+    # Shallow clone with depth 1
+    git clone --depth 1 https://github.com/username/repo /tmp/<projectId>
+    ```
+    
+    Status: `scanning`
+  </Step>
+  
+  <Step title="Analyzing codebase">
+    The engine walks your directory tree, filtering out:
+    - Lockfiles (`package-lock.json`, `yarn.lock`, etc.)
+    - Build artifacts (`dist/`, `build/`, `.next/`)
+    - Test files (`*.test.js`, `*.spec.ts`)
+    - Existing docs (`README.md`, `CHANGELOG.md`)
+    - Source maps (`*.map`)
+    - Minified files (`*.min.js`)
+    
+    ```javascript
+    // Real-time log event
+    {
+      "step": "analyzing",
+      "message": "Aggregation complete — concatenated 47 files into context window."
+    }
+    ```
+    
+    Status: `analyzing`
+  </Step>
+  
+  <Step title="AI generation">
+    Your concatenated codebase is sent to the AI model:
+    
+    ```javascript
+    // Real-time log event
+    {
+      "step": "generating",
+      "message": "Using Gemini 2.5 Flash"
+    }
+    {
+      "step": "generating",
+      "message": "Sending full codebase — 425,000 chars (47 files)"
+    }
+    ```
+    
+    Status: `generating`
+  </Step>
+  
+  <Step title="Cleanup & deploy">
+    Temporary files are removed, docs are saved to MongoDB, and your project goes live:
+    
+    ```javascript
+    {
+      "step": "cleanup",
+      "message": "Temporary files removed"
+    }
+    ```
+    
+    Status: `ready`
+  </Step>
+</Steps>
+
+<Note>
+  **Generation time:** Typically 15-45 seconds depending on repo size and chosen AI model.
+</Note>
+
+## Step 6: View & Edit Your Docs
+
+Your documentation is now live!
+
+<Steps>
+  <Step title="Access your docs">
+    Navigate to your custom URL:
+    
+    ```
+    https://yourproject.whatdoc.xyz
+    ```
+    
+    Or:
+    
+    ```
+    https://whatdoc.xyz/p/yourproject
+    ```
+  </Step>
+  
+  <Step title="Edit the content">
+    From your dashboard, click **Edit Docs** to open the live editor:
+    
+    - **Markdown editor** - Edit raw markdown
+    - **Live preview** - See changes in real-time
+    - **Auto-save** - Changes are saved automatically
+    
+    ```javascript
+    // PUT /api/project/:projectId
+    {
+      "generatedDocs": "# Updated Documentation\n\n..."
+    }
+    ```
+  </Step>
+  
+  <Step title="Customize settings">
+    Click the **Settings** gear icon to:
+    - Change template
+    - Update URL slug
+    - Configure custom subdomain
+    - Add custom domain (Pro)
+    - Customize logo and branding
+  </Step>
+</Steps>
+
+## Advanced Features
+
+### Custom Subdomains
+
+Every project automatically gets a custom subdomain:
+
+```javascript
+// Example Project document (server/models/Project.js)
+{
+  "slug": "my-api",
+  "subdomain": "my-api",  // my-api.whatdoc.xyz
+  "customDomain": null     // Pro feature
+}
+```
+
+### Custom Domains (Pro)
+
+Map your own domain to your documentation:
+
+<Steps>
+  <Step title="Add domain in settings">
+    Navigate to project settings and enter your custom domain:
+    
+    ```
+    docs.myapp.com
+    ```
+  </Step>
+  
+  <Step title="Update DNS">
+    Add a CNAME record pointing to WhatDoc:
+    
+    ```
+    CNAME  docs.myapp.com  cname.vercel-dns.com
+    ```
+  </Step>
+  
+  <Step title="SSL provisioning">
+    WhatDoc automatically provisions SSL via Cloudflare and Vercel.
+  </Step>
+</Steps>
+
+### Command Palette
+
+Press `Ctrl + Space` (or `Cmd + Space` on Mac) to open the command palette for quick navigation:
+
+```
+┌─────────────────────────────────┐
+│ Search projects...              │
+├─────────────────────────────────┤
+│ → my-api (twilio)              │
+│   frontend-app (minimalist)     │
+│   cli-tool (mdn)                │
+└─────────────────────────────────┘
+```
+
+## Usage Limits
+
+<Tabs>
+  <Tab title="Free Tier">
+    - **5 projects** included
+    - **Free AI models only** (Gemini 2.5 Flash Lite)
+    - **200k token limit** per generation
+    - Standard templates
+    - Custom subdomains
+  </Tab>
+  
+  <Tab title="BYOK (Free with your key)">
+    - **Unlimited projects**
+    - **Any AI model** (Gemini Pro, GPT-4, Claude 3.5)
+    - **Full context window** (no token limit)
+    - All templates
+    - Custom subdomains
+  </Tab>
+  
+  <Tab title="Pro ($4.99/month)">
+    - **Unlimited projects**
+    - Premium AI models included
+    - Full context window
+    - Premium templates
+    - Custom domains
+    - Priority support
+  </Tab>
+</Tabs>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Generation failed - why?">
+    Common causes:
+    - **Repository too large**: Free tier caps at ~200k tokens. Use BYOK or split into multiple projects.
+    - **Private repo without access**: Ensure you authorized private repo access during GitHub OAuth.
+    - **Invalid API key**: If using BYOK, verify your key is valid and has credits.
+    - **Rate limit**: Free tier has daily limits. Wait 24 hours or use BYOK.
+  </Accordion>
+  
+  <Accordion title="Can I regenerate documentation?">
+    Yes! Delete your project from the dashboard and re-import it. Future updates will add "Regenerate" directly.
+  </Accordion>
+  
+  <Accordion title="How do I cancel generation?">
+    Click the **Cancel** button during generation. The pipeline will abort and clean up temporary files.
+  </Accordion>
+  
+  <Accordion title="My docs don't match my code">
+    WhatDoc filters out test files, existing docs, and minified bundles. If critical files are missing, check that they:
+    - Have supported extensions (`.js`, `.ts`, `.py`, etc.)
+    - Aren't in blocked directories (`node_modules/`, `dist/`, `__tests__/`)
+    - Aren't in your `.gitignore`
+  </Accordion>
+</AccordionGroup>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Customize Your Docs" icon="palette" href="/guides/customizing-docs">
+    Learn how to customize templates, add logos, and configure branding.
+  </Card>
+  
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Integrate WhatDoc into your CI/CD pipeline with our REST API.
+  </Card>
+  
+  <Card title="Templates Guide" icon="swatchbook" href="/templates/overview">
+    Deep dive into all 14+ templates and when to use each.
+  </Card>
+  
+  <Card title="GitHub" icon="github" href="https://github.com/herin7/whatdoc.xyz">
+    Star the project, report issues, or contribute.
+  </Card>
+</CardGroup>
+
+---
+
+<Note>
+  Need help? Reach out to [@herin7](https://www.linkedin.com/in/herinsoni/) or report issues on [GitHub](https://github.com/herin7/whatdoc.xyz/issues).
 </Note>

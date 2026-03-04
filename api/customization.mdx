@@ -1,0 +1,395 @@
+---
+title: Customization
+description: Customize your documentation site appearance, branding, and domain settings
+---
+
+## Overview
+
+WhatDoc allows you to customize your documentation site with branding, navigation links, version information, and custom domains.
+
+## Update Project Customization
+
+Update appearance and branding settings for your documentation.
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customization": {
+      "logoUrl": "https://example.com/logo.png",
+      "ownerName": "Acme Corporation",
+      "currentVersion": "2.1.0",
+      "upcomingVersion": "2.2.0",
+      "navLinks": [
+        {
+          "label": "Website",
+          "url": "https://acme.com"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/acme/project"
+        }
+      ]
+    }
+  }'
+```
+
+**Authentication:** Required
+
+<ParamField path="projectId" type="string" required>
+  Project unique identifier
+</ParamField>
+
+## Customization Options
+
+### Branding
+
+<ParamField body="customization.logoUrl" type="string">
+  URL to your logo image. Displayed in the documentation header.
+  
+  **Recommended:**
+  - PNG or SVG format
+  - Transparent background
+  - Maximum height: 48px
+  - Hosted on a reliable CDN
+</ParamField>
+
+<ParamField body="customization.ownerName" type="string">
+  Organization or owner name displayed in the documentation footer and metadata.
+</ParamField>
+
+**Example:**
+
+```json
+{
+  "customization": {
+    "logoUrl": "https://cdn.acme.com/logo.svg",
+    "ownerName": "Acme Corporation"
+  }
+}
+```
+
+### Version Information
+
+<ParamField body="customization.currentVersion" type="string" default="1.0.0">
+  Current version number displayed in documentation. Follows semantic versioning.
+</ParamField>
+
+<ParamField body="customization.upcomingVersion" type="string">
+  Optional upcoming/beta version number. Used to show version roadmap.
+</ParamField>
+
+**Example:**
+
+```json
+{
+  "customization": {
+    "currentVersion": "2.1.0",
+    "upcomingVersion": "2.2.0-beta"
+  }
+}
+```
+
+### Navigation Links
+
+<ParamField body="customization.navLinks" type="array">
+  Array of custom navigation links displayed in the documentation header.
+  
+  Each link object has:
+  - `label` (string) - Link text
+  - `url` (string) - Link destination URL
+</ParamField>
+
+**Example:**
+
+```json
+{
+  "customization": {
+    "navLinks": [
+      {
+        "label": "Home",
+        "url": "https://acme.com"
+      },
+      {
+        "label": "Blog",
+        "url": "https://acme.com/blog"
+      },
+      {
+        "label": "Support",
+        "url": "https://support.acme.com"
+      }
+    ]
+  }
+}
+```
+
+## Templates
+
+Change the documentation template to match your brand style.
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template": "twilio"
+  }'
+```
+
+<ParamField body="template" type="string">
+  Template name. Available templates:
+  
+  **Free Templates:**
+  - `modern` - Modern, clean design
+  - `minimal` - Minimalist approach
+  
+  **Premium Templates** (Pro or promo code required):
+  - `twilio` - Twilio-inspired design
+  - `django` - Django documentation style
+  - `mdn` - MDN Web Docs style
+  - `aerolatex` - LaTeX documentation style
+  - `fintech` - Financial services style
+  - `devtools` - Developer tools focused
+  - `minimalist` - Ultra-minimal design
+  - `opensource` - Open source project style
+  - `wiki` - Wiki-style documentation
+  - `componentlib` - Component library focused
+  - `consumertech` - Consumer technology style
+  - `deepspace` - Dark theme with space aesthetics
+  - `web3` - Web3/blockchain style
+  - `enterprise` - Enterprise software style
+</ParamField>
+
+<Info>
+  Premium templates are available to Pro users or users who have redeemed the `WHATDOCFAM` promo code.
+</Info>
+
+## Domain Configuration
+
+### Subdomain
+
+Set up a subdomain on `whatdoc.xyz`.
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "subdomain": "acme"
+  }'
+```
+
+<ParamField body="subdomain" type="string">
+  Subdomain name (lowercase, alphanumeric and hyphens only).
+  
+  Result: `acme.whatdoc.xyz`
+</ParamField>
+
+**Validation:**
+- Only lowercase letters, numbers, and hyphens allowed
+- Must be unique across all projects
+- Automatically converted to lowercase
+
+### Custom Domain
+
+Configure a custom domain for your documentation.
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customDomain": "docs.acme.com"
+  }'
+```
+
+<ParamField body="customDomain" type="string">
+  Your custom domain name. Must be a valid domain you control.
+</ParamField>
+
+**Automatic Setup:**
+
+When you set a custom domain, WhatDoc automatically:
+
+1. Provisions SSL certificate via Cloudflare
+2. Adds domain to Vercel project
+3. Configures routing to your documentation
+
+**DNS Configuration:**
+
+Point your domain to WhatDoc by adding a CNAME record:
+
+```
+Type: CNAME
+Name: docs (or your subdomain)
+Value: cname.vercel-dns.com
+TTL: 3600
+```
+
+**Remove Custom Domain:**
+
+Set `customDomain` to empty string or `null`:
+
+```json
+{
+  "customDomain": ""
+}
+```
+
+<Warning>
+  **Domain Conflicts:**
+  - Each domain can only be mapped to one project
+  - Attempting to use an already-mapped domain returns `409 Conflict`
+  - Cloudflare SSL provisioning may take 1-2 minutes
+</Warning>
+
+## Update Documentation Content
+
+Directly update the generated documentation content.
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "generatedDocs": "# Updated Documentation\n\nThis is the updated content..."
+  }'
+```
+
+<ParamField body="generatedDocs" type="string">
+  Raw documentation content (usually Markdown or MDX format)
+</ParamField>
+
+<Note>
+  Manual content updates will be overwritten if you regenerate documentation from the repository.
+</Note>
+
+## Update URL Slug
+
+Change the project's URL slug.
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "new-project-slug"
+  }'
+```
+
+<ParamField body="slug" type="string">
+  New URL slug (lowercase, alphanumeric and hyphens only).
+  
+  Must be unique across all projects.
+</ParamField>
+
+**Validation:**
+- Automatically converted to lowercase
+- Non-alphanumeric characters (except hyphens) removed
+- Must be unique
+
+## Complete Customization Example
+
+Update all customization options at once:
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template": "enterprise",
+    "slug": "acme-api-docs",
+    "subdomain": "acme",
+    "customDomain": "docs.acme.com",
+    "customization": {
+      "logoUrl": "https://cdn.acme.com/logo.svg",
+      "ownerName": "Acme Corporation",
+      "currentVersion": "3.0.0",
+      "upcomingVersion": "3.1.0",
+      "navLinks": [
+        {
+          "label": "Home",
+          "url": "https://acme.com"
+        },
+        {
+          "label": "API Status",
+          "url": "https://status.acme.com"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/acme/api"
+        },
+        {
+          "label": "Support",
+          "url": "https://support.acme.com"
+        }
+      ]
+    }
+  }'
+```
+
+<ResponseField name="message" type="string">
+  Success message: "Project updated."
+</ResponseField>
+
+<ResponseField name="project" type="object">
+  Updated project object with all new settings applied
+</ResponseField>
+
+## Retrieve Customization
+
+Get current customization settings by fetching the project:
+
+```bash
+curl -X GET https://api.whatdoc.xyz/projects/PROJECT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+The response includes the `customization` object with all current settings.
+
+## Public Access to Customization
+
+Customization settings are included in public endpoints:
+
+```bash
+# By custom domain
+curl -X GET https://api.whatdoc.xyz/projects/custom-domain/docs.acme.com
+
+# By subdomain  
+curl -X GET https://api.whatdoc.xyz/projects/subdomain/acme
+
+# By slug
+curl -X GET https://api.whatdoc.xyz/projects/slug/acme-api-docs
+```
+
+These endpoints return customization data for rendering the documentation site.
+
+## Best Practices
+
+<Tip>
+  **Logo Guidelines:**
+  - Use SVG for scalability
+  - Ensure good contrast on both light and dark themes
+  - Test at different viewport sizes
+</Tip>
+
+<Tip>
+  **Version Numbers:**
+  - Follow semantic versioning (MAJOR.MINOR.PATCH)
+  - Update version numbers when regenerating docs after releases
+</Tip>
+
+<Tip>
+  **Navigation Links:**
+  - Limit to 3-5 links for best UX
+  - Use clear, concise labels
+  - Ensure all URLs are HTTPS
+</Tip>
+
+<Tip>
+  **Custom Domains:**
+  - Use a subdomain (e.g., `docs.acme.com`) rather than root domain
+  - Wait 5-10 minutes after DNS changes for propagation
+  - Test with both `http://` and `https://` after setup
+</Tip>

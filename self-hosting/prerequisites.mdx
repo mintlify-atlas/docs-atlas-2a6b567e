@@ -1,0 +1,134 @@
+---
+title: 'Prerequisites'
+description: 'Required software and accounts for self-hosting WhatDoc'
+---
+
+## System Requirements
+
+Before installing WhatDoc, ensure your system meets these requirements:
+
+### Node.js 18 or Higher
+
+WhatDoc requires Node.js version 18 or higher to run both the client and server.
+
+<Steps>
+  <Step title="Check your Node.js version">
+    ```bash
+    node --version
+    ```
+    
+    You should see `v18.0.0` or higher.
+  </Step>
+  
+  <Step title="Install or update Node.js">
+    If you need to install or update Node.js:
+    
+    - **macOS/Linux**: Use [nvm](https://github.com/nvm-sh/nvm)
+      ```bash
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+      nvm install 18
+      nvm use 18
+      ```
+    
+    - **Windows**: Download from [nodejs.org](https://nodejs.org/)
+  </Step>
+</Steps>
+
+### MongoDB
+
+WhatDoc uses MongoDB to store user accounts, projects, and generated documentation.
+
+<Steps>
+  <Step title="Choose your MongoDB setup">
+    You have two options:
+    
+    **Option 1: Local MongoDB**
+    - Install MongoDB Community Edition from [mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)
+    - Default connection string: `mongodb://localhost:27017/whatdoc`
+    
+    **Option 2: MongoDB Atlas (Cloud)**
+    - Create a free account at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+    - Create a cluster and get your connection string
+    - Connection string format: `mongodb+srv://username:password@cluster.mongodb.net/whatdoc`
+  </Step>
+  
+  <Step title="Verify MongoDB is running">
+    For local installations:
+    ```bash
+    mongosh
+    ```
+    
+    For Atlas, test your connection string using MongoDB Compass or mongosh.
+  </Step>
+</Steps>
+
+### Gemini API Key
+
+WhatDoc uses Google's Gemini API to generate documentation from your code.
+
+<Steps>
+  <Step title="Get your free Gemini API key">
+    1. Visit [Google AI Studio](https://aistudio.google.com/apikey)
+    2. Sign in with your Google account
+    3. Click **"Create API Key"**
+    4. Copy your key - you'll need it for configuration
+  </Step>
+  
+  <Step title="Understand API limits">
+    The free tier of Gemini API includes:
+    - 15 requests per minute
+    - 1 million tokens per minute
+    - 1,500 requests per day
+    
+    This is typically sufficient for self-hosting. Monitor your usage at [Google AI Studio](https://aistudio.google.com/).
+  </Step>
+</Steps>
+
+### GitHub OAuth App
+
+WhatDoc uses GitHub OAuth for authentication and accessing repositories.
+
+<Steps>
+  <Step title="Create a GitHub OAuth App">
+    1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+    2. Click **"New OAuth App"**
+    3. Fill in the application details:
+       - **Application name**: `WhatDoc Self-Hosted` (or your preferred name)
+       - **Homepage URL**: `http://localhost:5173` (for development)
+       - **Authorization callback URL**: `http://localhost:3000/api/auth/github/callback`
+    4. Click **"Register application"**
+  </Step>
+  
+  <Step title="Get your credentials">
+    After creating the app, you'll see:
+    - **Client ID** - Copy this value
+    - **Client Secret** - Click "Generate a new client secret" and copy the value
+    
+    <Warning>
+      Keep your Client Secret secure! Never commit it to version control or share it publicly.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure for production (optional)">
+    If deploying to a production domain:
+    1. Update the **Homepage URL** to your domain (e.g., `https://docs.yourcompany.com`)
+    2. Update the **Authorization callback URL** to your API domain (e.g., `https://api.yourcompany.com/api/auth/github/callback`)
+  </Step>
+</Steps>
+
+### Server Requirements
+
+For production deployments, your server should have:
+
+- **CPU**: 1+ cores (2+ recommended)
+- **RAM**: 2GB minimum (4GB recommended)
+- **Storage**: 10GB minimum (for MongoDB, temporary clones, and application files)
+- **OS**: Linux (Ubuntu 20.04+), macOS, or Windows Server
+
+### Optional: Redis
+
+While not strictly required for basic operation, WhatDoc uses BullMQ which benefits from Redis for queue management in production environments.
+
+## Next Steps
+
+Once you have all prerequisites ready, proceed to the [Installation](/self-hosting/installation) guide.

@@ -1,0 +1,345 @@
+---
+title: Authentication
+description: JWT-based authentication for the WhatDoc API
+---
+
+## Overview
+
+WhatDoc uses JWT (JSON Web Token) authentication. After signing up or signing in, you'll receive a token that must be included in subsequent API requests.
+
+## Authentication Methods
+
+WhatDoc supports three authentication methods:
+
+1. **Email/Password** - Traditional signup and signin
+2. **Google OAuth** - Sign in with Google
+3. **GitHub OAuth** - Link GitHub account for private repository access
+
+## Sign Up
+
+Create a new user account.
+
+```bash
+curl -X POST https://api.whatdoc.xyz/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fname": "John",
+    "lname": "Doe",
+    "email": "john@example.com",
+    "password": "securePassword123"
+  }'
+```
+
+<ParamField body="fname" type="string" required>
+  User's first name
+</ParamField>
+
+<ParamField body="lname" type="string" required>
+  User's last name
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Valid email address
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Password (minimum 6 characters)
+</ParamField>
+
+<ResponseField name="message" type="string">
+  Success message
+</ResponseField>
+
+<ResponseField name="token" type="string">
+  JWT token (expires in 7 days)
+</ResponseField>
+
+<ResponseField name="user" type="object">
+  User object containing profile and plan information
+  
+  <Expandable title="user properties">
+    <ResponseField name="id" type="string">
+      User's unique identifier
+    </ResponseField>
+    
+    <ResponseField name="firstName" type="string">
+      User's first name
+    </ResponseField>
+    
+    <ResponseField name="lastName" type="string">
+      User's last name
+    </ResponseField>
+    
+    <ResponseField name="email" type="string">
+      User's email address
+    </ResponseField>
+    
+    <ResponseField name="isPro" type="boolean">
+      Whether user has Pro access
+    </ResponseField>
+    
+    <ResponseField name="planTier" type="string">
+      Plan tier: `free`, `499`, or `999`
+    </ResponseField>
+    
+    <ResponseField name="generationCount" type="number">
+      Number of documentation generations used
+    </ResponseField>
+    
+    <ResponseField name="has5DocsLimit" type="boolean">
+      Whether user has 5-docs limit activated
+    </ResponseField>
+    
+    <ResponseField name="promoGenerations" type="number">
+      Bonus generations from promo codes
+    </ResponseField>
+    
+    <ResponseField name="hasPremiumTemplates" type="boolean">
+      Access to premium templates
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Sign In
+
+Authenticate with existing credentials.
+
+```bash
+curl -X POST https://api.whatdoc.xyz/auth/signin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "securePassword123"
+  }'
+```
+
+<ParamField body="email" type="string" required>
+  User's email address
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password
+</ParamField>
+
+**Response:** Same structure as Sign Up endpoint.
+
+## Google Authentication
+
+Authenticate or create account using Google OAuth.
+
+```bash
+curl -X POST https://api.whatdoc.xyz/auth/google \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "displayName": "John Doe",
+    "photoURL": "https://lh3.googleusercontent.com/..."
+  }'
+```
+
+<ParamField body="email" type="string" required>
+  Email from Google OAuth
+</ParamField>
+
+<ParamField body="displayName" type="string">
+  Display name from Google
+</ParamField>
+
+<ParamField body="photoURL" type="string">
+  Profile photo URL from Google
+</ParamField>
+
+## Using Authentication Token
+
+Include the JWT token in the `Authorization` header for protected endpoints:
+
+```bash
+curl -X GET https://api.whatdoc.xyz/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Get Current User
+
+Retrieve the authenticated user's profile.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+<ResponseField name="current_user" type="object">
+  Complete user profile (excludes password and GitHub access token)
+</ResponseField>
+
+## GitHub Integration
+
+### Get GitHub Auth URL
+
+Get the OAuth URL to connect GitHub account.
+
+```bash
+curl -X GET "https://api.whatdoc.xyz/auth/github?includePrivate=true" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+<ParamField query="includePrivate" type="boolean" default="false">
+  Request access to private repositories
+</ParamField>
+
+<ResponseField name="url" type="string">
+  GitHub OAuth authorization URL
+</ResponseField>
+
+### Get GitHub Repositories
+
+Fetch all repositories from the authenticated user's GitHub account.
+
+```bash
+curl -X GET https://api.whatdoc.xyz/auth/github/repos \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+<ResponseField name="username" type="string">
+  GitHub username
+</ResponseField>
+
+<ResponseField name="repos" type="array">
+  Array of repository objects
+  
+  <Expandable title="repo properties">
+    <ResponseField name="id" type="number">
+      Repository ID
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Repository name
+    </ResponseField>
+    
+    <ResponseField name="fullName" type="string">
+      Full repository name (owner/repo)
+    </ResponseField>
+    
+    <ResponseField name="private" type="boolean">
+      Whether repository is private
+    </ResponseField>
+    
+    <ResponseField name="url" type="string">
+      Repository HTML URL
+    </ResponseField>
+    
+    <ResponseField name="description" type="string">
+      Repository description
+    </ResponseField>
+    
+    <ResponseField name="language" type="string">
+      Primary programming language
+    </ResponseField>
+    
+    <ResponseField name="defaultBranch" type="string">
+      Default branch name
+    </ResponseField>
+    
+    <ResponseField name="starCount" type="number">
+      Number of stars
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Unlink GitHub Account
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/auth/github/unlink \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Authentication:** Required
+
+## Profile Management
+
+### Update Profile
+
+Update user profile information.
+
+```bash
+curl -X PUT https://api.whatdoc.xyz/auth/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "avatarUrl": "https://example.com/avatar.jpg"
+  }'
+```
+
+**Authentication:** Required
+
+<ParamField body="firstName" type="string">
+  Updated first name
+</ParamField>
+
+<ParamField body="lastName" type="string">
+  Updated last name
+</ParamField>
+
+<ParamField body="avatarUrl" type="string">
+  Profile avatar URL
+</ParamField>
+
+## Promo Codes
+
+### Redeem Promo Code
+
+Activate promo codes for bonus generations or plan upgrades.
+
+```bash
+curl -X POST https://api.whatdoc.xyz/auth/redeem-pro \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "WHATDOCFAM"
+  }'
+```
+
+**Authentication:** Required
+
+<ParamField body="code" type="string" required>
+  Promo code to redeem
+</ParamField>
+
+**Available Codes:**
+- Pro access code (configured via `PRO_CODE` env var)
+- `FREE5DOCS` - Enables 5 documentation limit
+- `WHATDOCFAM` - 10 bonus generations + premium templates (limited redemptions)
+
+## Account Deletion
+
+Permanently delete user account and all associated projects.
+
+```bash
+curl -X DELETE https://api.whatdoc.xyz/auth/account \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "password": "securePassword123"
+  }'
+```
+
+**Authentication:** Required
+
+<ParamField body="password" type="string" required>
+  User's password for confirmation
+</ParamField>
+
+<Warning>
+  This action is irreversible. All projects will be permanently deleted.
+</Warning>
+
+## Token Expiration
+
+JWT tokens expire after **7 days**. After expiration, users must sign in again to obtain a new token.

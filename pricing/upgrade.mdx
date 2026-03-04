@@ -1,0 +1,206 @@
+---
+title: "How to Upgrade to Pro"
+description: "Step-by-step guide to upgrading your WhatDoc account from Free to Pro"
+---
+
+# How to Upgrade to Pro
+
+Ready to unlock unlimited documentation generations and premium features? This guide will walk you through upgrading your WhatDoc account.
+
+## Before You Upgrade
+
+### Check Your Current Plan
+
+Your account information includes:
+
+- **`isPro`**: Whether you have an active Pro subscription
+- **`planTier`**: Your current tier (`'free'`, `'499'`, or `'999'`)
+- **`generationCount`**: How many docs you've generated (free tier)
+- **`proExpiryDate`**: When your Pro subscription expires (if applicable)
+
+### Choose Your Pro Plan
+
+**Pro - Starter ($4.99/mo)**
+- Unlimited documentation regenerations
+- Up to 10 repositories
+- Premium templates
+- Priority queue processing
+
+Best for: Individual developers and small teams
+
+**Pro - Growth ($9.99/mo)**
+- Unlimited documentation regenerations
+- Up to 25 repositories
+- Premium templates
+- Priority queue processing
+
+Best for: Growing teams managing multiple projects
+
+## What Changes After Upgrading
+
+### Account Status Updates
+
+When you upgrade, your account is updated with:
+
+```javascript
+{
+  isPro: true,
+  planTier: '499', // or '999' depending on your choice
+  proExpiryDate: Date // Set based on subscription period
+}
+```
+
+### Immediate Benefits
+
+**Unlimited Regenerations**
+
+Your `generationCount` no longer blocks you from creating documentation:
+
+```javascript
+if (!user.isPro) {
+  // Generation count checks only apply to free tier
+  const currentLimit = baseLimit + (user.promoGenerations || 0);
+  if (user.generationCount >= currentLimit) {
+    return res.status(403).json({ error: 'Free tier limit reached!' });
+  }
+}
+```
+
+As a Pro user, you bypass generation count checks entirely.
+
+**Repository-Based Limits**
+
+Instead of counting generations, you're now limited by repositories:
+
+```javascript
+const repoCount = await Project.countDocuments({ userId: req.userId });
+const limit = user.planTier === '499' ? 10 : (user.planTier === '999' ? 25 : 0);
+```
+
+**Priority Processing**
+
+Your documentation jobs get higher priority in the queue:
+
+```javascript
+const jobOptions = user.isPro ? { priority: 1 } : { priority: 10 };
+```
+
+Lower numbers = higher priority, so your docs generate faster!
+
+**Premium Templates**
+
+You gain automatic access to premium templates:
+
+```javascript
+isPremium: user.isPro || user.hasPremiumTemplates || false
+```
+
+## Subscription Management
+
+### Expiry Handling
+
+WhatDoc automatically checks your subscription status on each request:
+
+```javascript
+if (user.isPro && user.proExpiryDate && new Date() > user.proExpiryDate) {
+  user.isPro = false;
+  user.planTier = 'free';
+  await user.save();
+}
+```
+
+**When your subscription expires:**
+- `isPro` is set to `false`
+- `planTier` reverts to `'free'`
+- You'll need to renew to continue generating unlimited docs
+- Existing documentation remains accessible
+
+### Upgrading Between Pro Tiers
+
+Switching from Pro ($4.99) to Pro ($9.99):
+
+1. Your `planTier` changes from `'499'` to `'999'`
+2. Repository limit increases from 10 to 25
+3. All other Pro benefits remain the same
+4. No interruption to existing documentation
+
+## Special Cases
+
+### Users with `has5DocsLimit`
+
+If you have extended free tier access (5 docs), upgrading still makes sense if:
+
+- You need more than 5 documentation projects
+- You want unlimited regenerations without counting
+- You need premium templates
+- You want priority queue processing
+
+### Users with `promoGenerations`
+
+Promotional generations are only used on the free tier:
+
+```javascript
+const currentLimit = baseLimit + (user.promoGenerations || 0);
+```
+
+Once you upgrade to Pro:
+- `promoGenerations` are no longer checked
+- You get unlimited regenerations regardless
+- Your bonus generations don't "expire" if you downgrade later
+
+### Users with `hasPremiumTemplates`
+
+If you already have premium templates on the free tier:
+
+```javascript
+isPremium: user.isPro || user.hasPremiumTemplates || false
+```
+
+Upgrading still provides:
+- Unlimited regenerations
+- Higher repository limits
+- Priority queue processing
+
+## Frequently Asked Questions
+
+### What happens to my existing documentation?
+
+All your existing documentation remains accessible after upgrading. Your docs are tied to your account, not your plan tier.
+
+### Can I regenerate old docs after upgrading?
+
+Yes! Pro users get unlimited regenerations for all repositories, including ones created on the free tier.
+
+### Do free tier generations count against my limit?
+
+No. Once you're on Pro, `generationCount` is no longer checked. You can regenerate any repository as many times as needed.
+
+### What if I hit my repository limit?
+
+If you reach 10 repos on Pro ($4.99) or 25 repos on Pro ($9.99), you'll receive:
+
+```json
+{
+  "error": "Plan limit reached! Your plan allows up to {limit} repos.",
+  "code": "UPGRADE_REQUIRED"
+}
+```
+
+You can:
+- Upgrade to the higher Pro tier (if on $4.99 plan)
+- Delete unused documentation projects
+- Contact us for enterprise options
+
+### Can I downgrade later?
+
+Yes, but be aware:
+- You'll lose unlimited regenerations
+- You'll be subject to free tier generation limits again
+- Existing docs remain accessible (read-only)
+- If you have more than 2-5 repos, you'll need to remove some before generating new docs
+
+## Ready to Upgrade?
+
+Head to your account settings and select your Pro plan to get started with unlimited documentation generation!
+
+**Need help?** Contact our support team if you have questions about which plan is right for you.

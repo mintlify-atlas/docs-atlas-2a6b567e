@@ -1,0 +1,275 @@
+---
+title: 'Configuration'
+description: 'Configure environment variables and start WhatDoc services'
+---
+
+## Environment Configuration
+
+WhatDoc requires environment variables to be configured for both the server and client. This guide explains each variable and how to set them up.
+
+### Server Configuration
+
+The server requires several environment variables to connect to MongoDB, authenticate users, and interact with external APIs.
+
+<Steps>
+  <Step title="Navigate to server directory">
+    ```bash
+    cd server
+    ```
+  </Step>
+  
+  <Step title="Create .env file">
+    Create a `.env` file in the `server` directory:
+    ```bash
+    touch .env
+    ```
+  </Step>
+  
+  <Step title="Add environment variables">
+    Open the `.env` file and add the following configuration:
+    
+    ```env
+    MONGO_URI=mongodb://localhost:27017/whatdoc
+    JWT_SECRET=your-secret-key
+    GEMINI_API_KEY=your-gemini-key
+    GITHUB_CLIENT_ID=your-github-client-id
+    GITHUB_CLIENT_SECRET=your-github-client-secret
+    PORT=3000
+    CLIENT_URL=http://localhost:5173
+    CORS_ORIGINS=http://localhost:5173,http://localhost:4173
+    APP_DOMAIN=localhost
+    ```
+  </Step>
+</Steps>
+
+### Server Environment Variables Explained
+
+#### Database Configuration
+
+**`MONGO_URI`**
+- **Description**: MongoDB connection string
+- **Required**: Yes
+- **Local example**: `mongodb://localhost:27017/whatdoc`
+- **Atlas example**: `mongodb+srv://username:password@cluster.mongodb.net/whatdoc`
+- **Notes**: Ensure MongoDB is running before starting the server
+
+#### Authentication
+
+**`JWT_SECRET`**
+- **Description**: Secret key for signing JWT tokens
+- **Required**: Yes
+- **Example**: `your-secret-key-change-this-in-production`
+- **Notes**: Use a strong, random string in production. Generate with:
+  ```bash
+  node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+  ```
+
+**`GITHUB_CLIENT_ID`**
+- **Description**: GitHub OAuth App Client ID
+- **Required**: Yes (for GitHub authentication)
+- **Example**: `Iv1.a1b2c3d4e5f6g7h8`
+- **Notes**: Obtain from your [GitHub OAuth App settings](https://github.com/settings/developers)
+
+**`GITHUB_CLIENT_SECRET`**
+- **Description**: GitHub OAuth App Client Secret
+- **Required**: Yes (for GitHub authentication)
+- **Example**: `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0`
+- **Notes**: Keep this secret! Never commit to version control
+
+#### AI Configuration
+
+**`GEMINI_API_KEY`**
+- **Description**: Google Gemini API key for AI-powered documentation generation
+- **Required**: Yes
+- **Example**: `AIzaSyABC123def456GHI789jkl012MNO345pqr`
+- **Notes**: Get your free key from [Google AI Studio](https://aistudio.google.com/apikey)
+
+#### Server Settings
+
+**`PORT`**
+- **Description**: Port number for the Express server
+- **Required**: No (defaults to 3000)
+- **Example**: `3000`
+- **Notes**: Change if port 3000 is already in use
+
+**`CLIENT_URL`**
+- **Description**: URL where the client application is running
+- **Required**: Yes
+- **Development**: `http://localhost:5173`
+- **Production**: Your frontend domain (e.g., `https://docs.yourcompany.com`)
+- **Notes**: Used for CORS and redirect URLs
+
+**`CORS_ORIGINS`**
+- **Description**: Comma-separated list of allowed CORS origins
+- **Required**: Yes
+- **Development**: `http://localhost:5173,http://localhost:4173`
+- **Production**: Your frontend domains
+- **Notes**: Port 4173 is Vite's preview server
+
+**`APP_DOMAIN`**
+- **Description**: Base domain for the application
+- **Required**: Yes
+- **Development**: `localhost`
+- **Production**: Your domain (e.g., `yourcompany.com`)
+- **Notes**: Used for subdomain generation (e.g., `project.yourcompany.com`)
+
+### Client Configuration
+
+The client requires minimal configuration to connect to the API server.
+
+<Steps>
+  <Step title="Navigate to client directory">
+    ```bash
+    cd client
+    ```
+  </Step>
+  
+  <Step title="Create .env file">
+    Create a `.env` file in the `client` directory:
+    ```bash
+    touch .env
+    ```
+  </Step>
+  
+  <Step title="Add environment variables">
+    Open the `.env` file and add:
+    
+    ```env
+    VITE_API_URL=http://localhost:3000
+    VITE_APP_DOMAIN=localhost:5173
+    ```
+  </Step>
+</Steps>
+
+### Client Environment Variables Explained
+
+**`VITE_API_URL`**
+- **Description**: URL of the backend API server
+- **Required**: Yes
+- **Development**: `http://localhost:3000`
+- **Production**: Your API domain (e.g., `https://api.yourcompany.com`)
+- **Notes**: Must match the server's `PORT` configuration
+
+**`VITE_APP_DOMAIN`**
+- **Description**: Domain where the client is running
+- **Required**: Yes
+- **Development**: `localhost:5173`
+- **Production**: Your frontend domain without protocol (e.g., `docs.yourcompany.com`)
+- **Notes**: Used for subdomain-based doc routing
+
+### Start the Services
+
+Once configuration is complete, you can start both services.
+
+<Steps>
+  <Step title="Start the server">
+    In a terminal, from the `server` directory:
+    ```bash
+    npm start
+    ```
+    
+    You should see:
+    ```
+    Server running on port 3000
+    MongoDB connected successfully
+    ```
+    
+    <Note>
+      For development with auto-reload, use `npm run dev` instead.
+    </Note>
+  </Step>
+  
+  <Step title="Start the client">
+    In a new terminal, from the `client` directory:
+    ```bash
+    npm run dev
+    ```
+    
+    You should see:
+    ```
+    VITE v7.3.1  ready in 450 ms
+    
+    ➜  Local:   http://localhost:5173/
+    ➜  Network: use --host to expose
+    ```
+  </Step>
+  
+  <Step title="Verify services are running">
+    1. Open your browser to [http://localhost:5173](http://localhost:5173)
+    2. You should see the WhatDoc landing page
+    3. Try signing in with GitHub to verify OAuth is working
+  </Step>
+</Steps>
+
+### Production Deployment
+
+For production deployments, additional configuration is recommended:
+
+<Accordion title="Build the client for production">
+  ```bash
+  cd client
+  npm run build
+  ```
+  
+  This creates an optimized production build in the `dist` directory. Serve these files with nginx, Apache, or a CDN.
+</Accordion>
+
+<Accordion title="Use a process manager for the server">
+  Install PM2 to keep your server running:
+  ```bash
+  npm install -g pm2
+  cd server
+  pm2 start server.js --name whatdoc-server
+  pm2 save
+  pm2 startup
+  ```
+</Accordion>
+
+<Accordion title="Configure reverse proxy">
+  Use nginx or Apache to:
+  - Serve the client build files
+  - Proxy API requests to the Express server
+  - Handle SSL/TLS certificates
+  - Enable gzip compression
+</Accordion>
+
+<Accordion title="Set up environment-specific configs">
+  For production:
+  - Use strong, unique `JWT_SECRET`
+  - Point `MONGO_URI` to a production database
+  - Update `CLIENT_URL`, `CORS_ORIGINS`, and `APP_DOMAIN` to your domains
+  - Update GitHub OAuth callback URLs
+  - Consider using environment variable management tools like Docker secrets or AWS Parameter Store
+</Accordion>
+
+### Troubleshooting
+
+**MongoDB connection failed**
+- Verify MongoDB is running: `mongosh` (local) or test connection string (Atlas)
+- Check `MONGO_URI` format is correct
+- Ensure network access is allowed (for Atlas, check IP whitelist)
+
+**GitHub OAuth not working**
+- Verify `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` are correct
+- Check OAuth callback URL matches: `http://localhost:3000/api/auth/github/callback`
+- Ensure `CLIENT_URL` is set correctly for redirects
+
+**CORS errors in browser**
+- Verify `CORS_ORIGINS` includes your client URL
+- Check `CLIENT_URL` matches where your frontend is running
+- Ensure both services are running
+
+**Port already in use**
+- Change `PORT` in server `.env` to an available port
+- Update `VITE_API_URL` in client `.env` to match
+
+## Next Steps
+
+Your WhatDoc instance is now running! You can:
+
+1. Sign in with GitHub
+2. Import a repository
+3. Choose a documentation template
+4. Generate beautiful docs in seconds
+
+For advanced configuration and customization options, explore the source code in the `server` and `client` directories.

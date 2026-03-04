@@ -1,97 +1,253 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: WhatDoc - AI-powered documentation generator
+description: Create beautiful, production-ready documentation from your GitHub repos in 60 seconds
+mode: custom
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-br from-[#040505] via-[#0a1a15] to-[#1c7354] dark:from-[#040505] dark:via-[#0a1a15] dark:to-[#1c7354] py-20">
+  <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          Connect your GitHub.<br />Get beautiful docs instantly.
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mb-8">
+          AI-powered documentation generator that transforms your code into production-ready docs in under 60 seconds. Choose from 14+ professional templates and deploy with a custom subdomain.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="/quickstart"
+            className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-[#31c892] hover:bg-[#1c7354] rounded-lg transition-colors no-underline"
+          >
+            Get Started
+            <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+          <a
+            href="/api/overview"
+            className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg transition-colors no-underline"
+          >
+            Explore API
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 hidden lg:block">
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#31c892] to-[#1c7354] rounded-2xl blur-3xl opacity-20"></div>
+          <img
+            src="https://media.brand.dev/83863cb6-8e56-4388-9ee7-0b8495151524.png"
+            alt="WhatDoc Logo"
+            className="relative w-full h-auto max-w-md mx-auto"
+            noZoom
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+    Get started in 60 seconds
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    From GitHub connection to deployed docs in three simple steps
+  </p>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <Steps>
+    <Step title="Connect your GitHub account">
+      Sign up with GitHub OAuth and authorize WhatDoc to access your repositories. You can import both public and private repos.
+      
+      ```bash
+      # Your repos are never modified or stored permanently
+      # WhatDoc performs ephemeral shallow clones for analysis only
+      ```
+    </Step>
+    
+    <Step title="Import and configure your repo">
+      Select a repository, choose your tech stack (MERN, Next.js, or Other), pick from 14+ professional templates, and optionally provide your own Gemini API key for unlimited generation.
+      
+      <Note>
+        Free tier includes 2 documentation sites. Pro plans support 10-25 repos depending on tier.
+      </Note>
+    </Step>
+    
+    <Step title="Generate and deploy">
+      Click generate and watch the AI analyze your codebase, extract key patterns, and produce comprehensive documentation. Your docs are instantly deployed to `yourproject.whatdoc.xyz`.
+      
+      ```json
+      {
+        "status": "ready",
+        "subdomain": "my-api.whatdoc.xyz",
+        "template": "twilio",
+        "generatedAt": "2026-03-04T14:30:00Z"
+      }
+      ```
+      
+      <Accordion title="View example output">
+        WhatDoc generates structure-aware documentation including:
+        - README with installation and quickstart
+        - API reference with all endpoints
+        - Configuration guides
+        - Code examples from your actual codebase
+      </Accordion>
+    </Step>
+  </Steps>
+</div>
 
-## Make it yours
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+    Explore by topic
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Everything you need to create, customize, and deploy beautiful documentation
+  </p>
 
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
+  <CardGroup cols={3}>
     <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+      title="AI Generation"
+      icon="brain"
+      href="/features/ai-generation"
+    >
+      Smart code ingestion with token optimization and paradigm-aware prompting
+    </Card>
+    <Card
+      title="Templates"
+      icon="palette"
+      href="/features/templates"
+    >
+      14+ professional themes inspired by Twilio, Django, MDN, and more
+    </Card>
+    <Card
+      title="Custom Domains"
+      icon="globe"
+      href="/features/custom-domains"
+    >
+      Deploy to yourproject.whatdoc.xyz or bring your own custom domain
+    </Card>
+    <Card
+      title="Live Editor"
+      icon="pen"
+      href="/features/live-editor"
+    >
+      Edit generated documentation with a rich markdown editor
+    </Card>
+    <Card
+      title="API Playground"
+      icon="vial"
+      href="/features/api-playground"
+    >
+      Test API endpoints directly from your documentation page
+    </Card>
+    <Card
+      title="BYOK Support"
+      icon="key"
+      href="/guides/byok"
+    >
+      Bring your own Gemini API key for unlimited generation
+    </Card>
+  </CardGroup>
+</div>
 
-## Create beautiful pages
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+    Featured guides
+  </h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+    Step-by-step tutorials to help you make the most of WhatDoc
+  </p>
 
-Everything you need to create world-class documentation.
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a href="/guides/connecting-github" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#31c892] dark:hover:border-[#31c892] overflow-hidden no-underline transition-colors">
+      <div className="h-56 bg-gradient-to-br from-[#1c7354] to-[#31c892] flex items-center justify-center overflow-hidden">
+        <svg className="w-24 h-24 text-white opacity-80" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+      </div>
+      <div className="p-6 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Connecting GitHub</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Set up GitHub OAuth and import your first repository
+        </p>
+        <span className="text-sm font-medium text-gray-900 dark:text-gray-400 group-hover:text-[#31c892] transition-colors">
+          Read guide →
+        </span>
+      </div>
+    </a>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+    <a href="/guides/customizing-docs" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#31c892] dark:hover:border-[#31c892] overflow-hidden no-underline transition-colors">
+      <div className="h-56 bg-gradient-to-br from-[#31c892] to-[#1c7354] flex items-center justify-center overflow-hidden">
+        <svg className="w-24 h-24 text-white opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      </div>
+      <div className="p-6 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Customizing your docs</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Edit content, add custom logos, and configure navigation links
+        </p>
+        <span className="text-sm font-medium text-gray-900 dark:text-gray-400 group-hover:text-[#31c892] transition-colors">
+          Read guide →
+        </span>
+      </div>
+    </a>
+  </div>
+</div>
 
-## Need inspiration?
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+    Resources
+  </h2>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+  <CardGroup cols={2}>
+    <Card
+      title="API Reference"
+      icon="code"
+      href="/api/overview"
+    >
+      Complete REST API documentation for programmatic access
+    </Card>
+    <Card
+      title="Self-Hosting Guide"
+      icon="server"
+      href="/self-hosting/introduction"
+    >
+      Deploy WhatDoc on your own infrastructure
+    </Card>
+    <Card
+      title="Pricing & Plans"
+      icon="credit-card"
+      href="/pricing/plans"
+    >
+      Compare free and pro tiers, generation limits, and features
+    </Card>
+    <Card
+      title="Template Gallery"
+      icon="images"
+      href="/templates/overview"
+    >
+      Browse all 14+ documentation themes with live previews
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gradient-to-br from-[#1c7354]/10 to-[#31c892]/10 dark:from-[#1c7354]/20 dark:to-[#31c892]/20 p-8 md:p-12 text-center">
+    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+      Ready to generate beautiful docs?
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+      Connect your GitHub account and create production-ready documentation in under 60 seconds. No credit card required to start.
+    </p>
+    <a
+      href="/quickstart"
+      className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-white bg-[#31c892] hover:bg-[#1c7354] rounded-lg transition-colors no-underline"
+    >
+      Get Started Now
+      <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </a>
+  </div>
+</div>

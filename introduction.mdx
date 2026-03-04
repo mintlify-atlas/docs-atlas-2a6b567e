@@ -1,0 +1,197 @@
+---
+title: Introduction to WhatDoc
+description: Transform your GitHub repositories into beautiful, AI-generated documentation in under 60 seconds
+---
+
+# Welcome to WhatDoc
+
+**Connect your GitHub. Get beautiful, AI-generated documentation instantly.**
+
+Every developer knows the pain: you build something great, but writing the docs feels like a second full-time job. So you don't. Your README stays a one-liner, your API has no reference, and your users bounce.
+
+**WhatDoc fixes this.** Connect your GitHub, import a repo, pick a template, and get production-ready documentation in under 60 seconds.
+
+## What is WhatDoc?
+
+WhatDoc is an AI-powered documentation generator that automatically creates production-ready docs from your codebase. It analyzes your repository, understands your code structure, and generates comprehensive documentation tailored to your project type.
+
+<Note>
+  WhatDoc uses advanced AI models (Gemini, OpenAI, Claude) to understand your code and generate contextual documentation — not just generic templates.
+</Note>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Smart Code Ingestion" icon="brain">
+    Shallow-clones your repo, walks the directory tree, filters noise (lockfiles, dist, tests), and compresses source via a regex-based minifier before sending to the LLM.
+  </Card>
+  
+  <Card title="14+ Professional Templates" icon="palette">
+    Choose from Twilio, Django, MDN, AeroLaTeX, Fintech, DevTools, and more. Every template is responsive, dark-mode ready, and gorgeous.
+  </Card>
+  
+  <Card title="Custom Subdomains" icon="globe">
+    Every project gets its own `yourproject.whatdoc.xyz` subdomain — instant shareable docs.
+  </Card>
+  
+  <Card title="BYOK (Bring Your Own Key)" icon="key">
+    Plug in your Gemini, OpenAI, or Claude API key for unthrottled, limit-free generation. Stored in local storage, never touches our servers.
+  </Card>
+  
+  <Card title="GitHub OAuth" icon="github">
+    Connect your GitHub, import repos (public or private), and generate docs in one flow.
+  </Card>
+  
+  <Card title="Live Editor" icon="pencil">
+    Edit your generated documentation in a rich markdown editor. Changes save instantly.
+  </Card>
+  
+  <Card title="One-Click Deploy" icon="rocket">
+    Generate → customize → deploy. Your docs go live at a permanent URL in seconds.
+  </Card>
+  
+  <Card title="Command Palette" icon="terminal">
+    Power-user keyboard shortcuts (`Ctrl + Space`) for fast navigation between projects.
+  </Card>
+</CardGroup>
+
+## How It Works
+
+WhatDoc uses a multi-stage pipeline to go from raw repo to polished docs:
+
+<Steps>
+  <Step title="Shallow Clone">
+    Uses `simple-git` with `--depth 1` to clone your repository to `/tmp`. Fast, ephemeral, and nothing persists on disk.
+    
+    ```javascript
+    // server/services/engine.js:214-215
+    const git = simpleGit();
+    await git.clone(repoUrl, tempPath, ['--depth', '1']);
+    ```
+  </Step>
+  
+  <Step title="Code Ingestion">
+    Walks the directory tree, filters noise files (lockfiles, `dist/`, tests, existing READMEs), and applies the **Regex Guillotine** minifier:
+    
+    - Strips block comments (`/* ... */`)
+    - Collapses consecutive `//` comment runs
+    - Truncates base64 blobs and long string literals
+    - Respects `.gitignore` patterns
+    
+    ```javascript
+    // server/services/engine.js:99-121
+    function minifyFileContent(raw) {
+      let s = raw;
+      s = s.replace(/\/\*[\s\S]*?\*\//g, '');
+      s = s.replace(/(?:^[ \t]*\/\/.*\n){3,}/gm, '// [comments collapsed]\n');
+      // ... more filtering
+      return s;
+    }
+    ```
+  </Step>
+  
+  <Step title="AI Generation">
+    Sends the concatenated codebase to your chosen LLM (Gemini/OpenAI/Claude). The system prompt instructs the AI to detect your repo type (REST API vs frontend vs CLI) and adapt the doc structure accordingly.
+    
+    <Note>
+      Free tier is capped at ~200k tokens with smart file-boundary cutoff. BYOK users get the full context window.
+    </Note>
+  </Step>
+  
+  <Step title="Cleanup & Render">
+    Cloned files are nuked from `/tmp`, generated markdown is saved to MongoDB, and rendered with your chosen React template.
+  </Step>
+</Steps>
+
+## Supported Project Types
+
+WhatDoc automatically detects and adapts to your codebase:
+
+| Project Type | What Gets Generated |
+|--------------|---------------------|
+| **REST API** | Endpoint reference, authentication, request/response examples |
+| **Frontend** | Component documentation, props, hooks, state management |
+| **CLI Tool** | Command reference, flags, usage examples |
+| **Library** | API reference, installation, usage patterns |
+| **Full-stack** | Architecture overview, API routes, frontend components |
+
+<Warning>
+  WhatDoc filters out test files, minified bundles, source maps, and existing documentation to focus on source code only.
+</Warning>
+
+## Template Showcase
+
+Choose from 14+ professionally designed templates:
+
+<Tabs>
+  <Tab title="Twilio">
+    API-first dark layout with sidebar nav — perfect for REST APIs and developer tools.
+  </Tab>
+  <Tab title="Django">
+    Classic two-column docs with TOC — great for comprehensive framework documentation.
+  </Tab>
+  <Tab title="MDN">
+    Reference-style with breadcrumbs — ideal for technical references and guides.
+  </Tab>
+  <Tab title="AeroLaTeX">
+    Academic glassmorphic on paper-white — stunning for research projects and academic tools.
+  </Tab>
+  <Tab title="Fintech">
+    Stripe-inspired split pane — white prose, dark code snippets.
+  </Tab>
+  <Tab title="And 9 more...">
+    DevTools, Minimalist, Open Source, Wiki, Component Lib, Consumer Tech, Deep Space, Web3, Enterprise
+  </Tab>
+</Tabs>
+
+## Tech Stack
+
+### Backend
+- **Express 5** - HTTP server
+- **MongoDB + Mongoose** - Database & ODM  
+- **Gemini/OpenAI/Claude** - AI-powered doc generation
+- **simple-git** - Ephemeral repo cloning
+- **ignore** - `.gitignore`-aware file filtering
+- **JWT + bcrypt** - Authentication
+- **Zod** - Schema validation
+
+### Frontend
+- **React 19** - UI framework
+- **Vite** - Build tool & dev server
+- **TailwindCSS** - Utility-first styling
+- **React Router** - Client-side routing
+- **React Markdown** - Markdown rendering
+- **React Syntax Highlighter** - Code blocks
+
+## Who It's For
+
+<CardGroup cols={2}>
+  <Card title="Open Source Maintainers" icon="code-branch">
+    Stop copy-pasting README boilerplate. Generate comprehensive docs that attract contributors.
+  </Card>
+  
+  <Card title="Startups" icon="rocket">
+    Ship polished API documentation without hiring a technical writer.
+  </Card>
+  
+  <Card title="Solo Developers" icon="user">
+    Focus on building. Let AI handle the documentation.
+  </Card>
+  
+  <Card title="Teams" icon="users">
+    Standardize documentation across all your microservices.
+  </Card>
+</CardGroup>
+
+## What's Next?
+
+<Card title="Quick Start Guide" icon="play" href="/quickstart">
+  Ready to generate your first docs? Follow our quickstart guide to go from zero to deployed in 5 minutes.
+</Card>
+
+---
+
+<Note>
+  **Built by [@herin7](https://github.com/herin7)**  
+  If WhatDoc helped you, consider giving it a ⭐ on [GitHub](https://github.com/herin7/whatdoc.xyz)
+</Note>

@@ -1,0 +1,285 @@
+---
+title: Bring Your Own Key (BYOK)
+description: Use your own API key from Gemini, OpenAI, or Anthropic for unlimited documentation generation
+---
+
+## Overview
+
+Bring Your Own Key (BYOK) allows you to use your personal API keys from AI providers instead of WhatDoc's shared quota. This unlocks:
+
+- **Unlimited generation**: No tier limits
+- **Advanced models**: Access to GPT-4, Claude, and Gemini Pro
+- **Cost control**: Pay only for what you use
+- **Privacy**: Keys are never stored in the database
+
+## How BYOK Works
+
+When you provide a custom API key during project configuration:
+
+1. The key is stored in your browser's `localStorage`
+2. On project creation, the key is sent via HTTP headers:
+   - `x-custom-api-key`: Your API key
+   - `x-target-model`: Selected model ID (e.g., `gemini-2.5-pro`)
+3. The backend relays the key to the AI provider for generation
+4. The key is **never persisted** in the WhatDoc database
+5. After generation, the key is discarded from the server
+
+<Info>
+  Your API key stays in your browser and is sent directly to the AI provider. WhatDoc acts as a secure relay without storing sensitive credentials.
+</Info>
+
+## Supported Providers
+
+### Google Gemini
+
+**Free Models** (no key required):
+- `gemini-2.5-flash-lite` (default, fastest)
+- `gemini-2.5-flash`
+
+**Premium Models** (requires API key):
+- `gemini-2.5-pro`
+
+**Get Your Key:**
+1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click **Create API Key**
+4. Copy the key (format: `AIzaSy...`)
+
+**Pricing:** Gemini offers a generous free tier with rate limits. Check [Google AI pricing](https://ai.google.dev/pricing).
+
+### OpenAI
+
+**Available Models**:
+- `gpt-4o`
+- `gpt-4o-mini`
+
+**Get Your Key:**
+1. Visit [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Sign in or create an account
+3. Click **Create new secret key**
+4. Copy the key (format: `sk-proj-...`)
+
+**Pricing:** OpenAI charges per token. GPT-4o costs ~$2.50-$10 per million input tokens. Check [OpenAI pricing](https://openai.com/pricing).
+
+<Warning>
+  OpenAI requires billing information to use API keys. Ensure you have a payment method on file.
+</Warning>
+
+### Anthropic
+
+**Available Models**:
+- `claude-3.7-sonnet`
+- `claude-3.5-haiku`
+
+**Get Your Key:**
+1. Visit [Anthropic Console](https://console.anthropic.com/settings/keys)
+2. Sign in or create an account
+3. Click **Create Key**
+4. Copy the key (format: `sk-ant-...`)
+
+**Pricing:** Claude charges per token with tiered pricing. Check [Anthropic pricing](https://www.anthropic.com/pricing).
+
+## Using BYOK
+
+<Steps>
+  <Step title="Import a Repository">
+    Start by importing a repository from `/import` as usual.
+  </Step>
+
+  <Step title="Configure Project">
+    On the `/configure` page, scroll to the **Model & API Key** section.
+  </Step>
+
+  <Step title="Select a Model">
+    Choose your desired model from the dropdown:
+    
+    - **Gemini**: Free models available without key
+    - **OpenAI**: Requires API key for all models
+    - **Anthropic**: Requires API key for all models
+    
+    Premium models are marked with a lock icon if no key is provided.
+  </Step>
+
+  <Step title="Enter Your API Key">
+    Paste your API key into the **API Key** field.
+    
+    The placeholder text changes based on the selected provider:
+    - Gemini: `AIzaSy... (leave blank for free models)`
+    - OpenAI: `sk-proj-... (API Key required)`
+    - Anthropic: `sk-ant-... (API Key required)`
+    
+    <Info>
+      Your key is validated by length (>20 characters) but not authenticated until generation starts.
+    </Info>
+  </Step>
+
+  <Step title="Deploy Documentation">
+    Click **Deploy Documentation**. Your key is used for this generation.
+    
+    The system bypasses tier limits when a valid custom key is detected:
+    ```javascript
+    const isCustomKeyValid = rawCustomKey && rawCustomKey !== 'null' && rawCustomKey.length > 20;
+    ```
+  </Step>
+</Steps>
+
+## Model Selector Component
+
+The model selector dynamically adjusts based on whether you've provided a key:
+
+```javascript
+<ModelSelector
+  hasCustomKey={customKey.trim().length > 20}
+  selectedModel={customModel}
+  setSelectedModel={setCustomModel}
+  onRequestKey={(model) => {
+    // Prompts user to provide a key for premium models
+  }}
+/>
+```
+
+**Behavior:**
+- If `hasCustomKey` is `false`, premium models show a lock icon and trigger `onRequestKey` on selection
+- If `hasCustomKey` is `true`, all models are unlocked
+
+## Security & Privacy
+
+<Check>
+  **Your API key is NEVER stored in the WhatDoc database.**
+</Check>
+
+The BYOK flow ensures maximum security:
+
+1. **localStorage**: Key is stored locally in your browser
+2. **HTTPS Headers**: Key is transmitted securely via `x-custom-api-key` header
+3. **Server Relay**: WhatDoc relays the key to the AI provider's API
+4. **No Persistence**: The key is discarded after the request completes
+5. **No Logs**: Keys are not logged or stored in any backend system
+
+### Backend Validation
+
+On the server, keys are validated but never saved:
+
+```javascript
+const rawCustomKey = (req.headers['x-custom-api-key'] || '').trim();
+const isCustomKeyValid = rawCustomKey && rawCustomKey !== 'null' && rawCustomKey.length > 20;
+
+const byokOptions = {
+  customKey: isCustomKeyValid ? rawCustomKey : '',
+  targetModel: req.headers['x-target-model'] || 'gemini-2.5-flash-lite',
+};
+
+// Passed to worker, never stored in DB
+await docGenerationQueue.add('generateDocs', {
+  projectId,
+  repoUrl,
+  commitHash,
+  llmProvider,
+  byokOptions,
+});
+```
+
+## Cost Estimation
+
+### Gemini
+- **Free Tier**: 15 requests per minute, 1,500 requests per day
+- **Paid Tier**: $0.075 per 1M input tokens (Flash), $1.25 per 1M input tokens (Pro)
+
+Typical documentation generation:
+- Small repo (1,000 files): ~500K tokens → $0.04 (Flash) or $0.63 (Pro)
+- Large repo (10,000 files): ~5M tokens → $0.38 (Flash) or $6.25 (Pro)
+
+### OpenAI
+- **GPT-4o**: $2.50 per 1M input tokens, $10 per 1M output tokens
+- **GPT-4o-mini**: $0.15 per 1M input tokens, $0.60 per 1M output tokens
+
+Typical documentation generation:
+- Small repo: ~500K tokens → $1.25 (4o) or $0.08 (4o-mini)
+- Large repo: ~5M tokens → $12.50 (4o) or $0.75 (4o-mini)
+
+### Anthropic
+- **Claude 3.7 Sonnet**: $3 per 1M input tokens, $15 per 1M output tokens
+- **Claude 3.5 Haiku**: $0.25 per 1M input tokens, $1.25 per 1M output tokens
+
+Typical documentation generation:
+- Small repo: ~500K tokens → $1.50 (Sonnet) or $0.13 (Haiku)
+- Large repo: ~5M tokens → $15 (Sonnet) or $1.25 (Haiku)
+
+<Note>
+  Actual costs vary based on repository size, code complexity, and output length. These are rough estimates.
+</Note>
+
+## Tier Limits with BYOK
+
+When using a custom API key, WhatDoc **bypasses tier limits**:
+
+- **Free Tier**: No generation count increment
+- **Pro Tier**: No repository limit enforcement
+- **Rate Limits**: Subject only to your API provider's limits
+
+You can generate unlimited documentation as long as you have API quota with your provider.
+
+## Removing Your API Key
+
+To stop using BYOK:
+
+1. Clear the **API Key** field on the `/configure` page
+2. Click **Deploy Documentation**
+3. Or clear it from localStorage:
+   ```javascript
+   localStorage.removeItem('wtd_custom_key');
+   ```
+
+Future generations will use WhatDoc's shared quota and be subject to tier limits.
+
+## Troubleshooting
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "API Key required" | Selected premium model without key | Enter your API key or switch to free model |
+| Generation fails with 401 | Invalid or expired API key | Verify key is correct and has billing enabled |
+| Generation fails with 429 | Rate limit exceeded | Wait and retry, or upgrade your API plan |
+| Key not recognized | Less than 20 characters | Ensure you copied the full key |
+| Model unavailable | Provider outage | Check provider status page |
+
+### Debugging BYOK
+
+If generation fails with a custom key:
+
+1. **Verify Key**: Test the key directly via provider's API playground
+2. **Check Billing**: Ensure your provider account has active billing
+3. **Check Quota**: Verify you haven't exceeded rate limits
+4. **Check Format**: Ensure key matches expected format:
+   - Gemini: `AIzaSy...`
+   - OpenAI: `sk-proj-...`
+   - Anthropic: `sk-ant-...`
+
+## Best Practices
+
+<Check>
+  **Do:**
+  - Use free Gemini models for testing
+  - Monitor your API usage via provider dashboards
+  - Set up billing alerts to avoid surprise charges
+  - Keep your API keys secure and never share them
+  - Rotate keys periodically for security
+</Check>
+
+<Warning>
+  **Don't:**
+  - Commit API keys to version control
+  - Share keys in public forums or screenshots
+  - Use keys on shared/public computers without clearing localStorage
+  - Exceed your API budget (set spending limits)
+</Warning>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Generating Docs" icon="sparkles" href="/guides/generating-docs">
+    Learn the full documentation generation process
+  </Card>
+  <Card title="Customizing Docs" icon="paintbrush" href="/guides/customizing-docs">
+    Customize your documentation with logos and branding
+  </Card>
+</CardGroup>

@@ -1,0 +1,338 @@
+---
+title: MDN Template
+description: Reference-style documentation with generous whitespace and breadcrumb navigation
+---
+
+# MDN Template
+
+The MDN template is a **reference-style documentation design** inspired by MDN Web Docs. It emphasizes clarity, generous whitespace, and intuitive navigation through breadcrumbs and a collapsible table of contents. Perfect for web standards, API references, and technical documentation.
+
+## Design Overview
+
+This template uses a **clean, light theme** with a distinctive **3px black border** on the header and a colorful gradient progress bar. The design focuses on maximum readability with ample spacing and clear hierarchical structure.
+
+### Key Visual Elements
+
+- **Color Palette**: Pure white background with gray text (`gray-900`) and blue accents
+- **Layout**: Collapsible sidebar (250px) with centered content (max-width: 64rem)
+- **Typography**: Bold sans-serif headings with clear hierarchy
+- **Code Highlighting**: VS (Visual Studio) light theme
+- **Progress Bar**: Gradient from blue to pink tracking read position
+
+## Features
+
+### Reading Progress Bar
+
+A **top-edge gradient bar** shows reading progress:
+
+```jsx
+<div className="fixed top-0 left-0 right-0 h-[3px] bg-gray-100">
+  <div 
+    className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
+    style={{ width: `${progress}%` }}
+  />
+</div>
+```
+
+Updates in real-time as you scroll through the content.
+
+### Header Design
+
+#### Top Bar
+- **Bold Bottom Border**: 3px black line for visual weight
+- **Logo Positioning**: Left-aligned with GitHub link
+- **Mobile Menu**: Hamburger icon for responsive nav
+- **Clean Layout**: Maximum 1200px width, centered
+
+#### Breadcrumb Navigation
+Secondary bar with contextual path:
+
+```jsx
+References → Web → {repoShort}
+```
+
+Styles:
+- Light gray background (`gray-50/80`)
+- Subtle border separator
+- Chevron icons between items
+- Hover effects on clickable items
+
+### Sidebar Navigation
+
+Collapsible "On this page" sidebar:
+
+```jsx
+<button onClick={() => setTocOpen(!tocOpen)}>
+  On this page
+  <ChevronRight className={tocOpen ? 'rotate-90' : ''} />
+</button>
+```
+
+Features:
+- **Hash Icons**: Visual indicators for sections
+- **Active State**: Blue background and bold text
+- **Smooth Animations**: Fade-left entrance with staggered delays
+- **Minimal Width**: 250px to maximize content space
+
+### Content Area
+
+#### Title Block
+Extrabold, large heading with metadata:
+
+```jsx
+<h1 className="text-[2.5rem] font-extrabold tracking-tight">
+  {repoShort}
+</h1>
+```
+
+Includes:
+- Tech stack badge
+- Last updated date
+- Section count
+- 3px gradient accent rule
+
+#### Quick Jump Chips
+For documents with 4+ sections, shows first 8 as clickable pills:
+
+```jsx
+<button className="rounded-full border border-gray-200 hover:border-blue-300">
+  {section.title}
+</button>
+```
+
+Allows quick navigation to popular sections.
+
+### Code Blocks
+
+Minimalist code presentation:
+
+```jsx
+<div className="rounded-lg border border-gray-200 shadow-sm">
+  <div className="bg-[#f5f5f5] border-b">
+    <Layers className="size-3" />
+    {language}
+  </div>
+  <SyntaxHighlighter style={vs}>
+    {code}
+  </SyntaxHighlighter>
+</div>
+```
+
+Features:
+- Language icon (Layers)
+- Light gray header
+- VS theme highlighting
+- Rounded corners with shadow
+
+### Tables
+
+Custom-styled tables:
+
+```jsx
+<table className="min-w-full divide-y divide-gray-200">
+  <th className="bg-gray-50 text-xs font-bold uppercase" />
+  <td className="border-t border-gray-100" />
+</table>
+```
+
+Wrapped in scrollable container with rounded border.
+
+## Use Cases
+
+### Perfect For
+
+<CardGroup cols={2}>
+  <Card title="API References" icon="book-open">
+    Document web APIs, methods, and properties
+  </Card>
+  
+  <Card title="Web Standards" icon="globe">
+    HTML, CSS, JavaScript language references
+  </Card>
+  
+  <Card title="Technical Specs" icon="file-code">
+    Protocol documentation and specifications
+  </Card>
+  
+  <Card title="Library Docs" icon="box">
+    SDK and library reference materials
+  </Card>
+</CardGroup>
+
+### Not Ideal For
+
+- Dark theme projects (use Twilio or DevTools)
+- Minimalist branding (use Minimalist template)
+- Academic papers (use AeroLaTeX)
+
+## Technical Implementation
+
+### Scroll Progress Calculation
+
+```javascript
+const handler = () => {
+  const root = contentRef.current;
+  const total = root.scrollHeight - root.clientHeight;
+  const pct = total > 0 ? (root.scrollTop / total) * 100 : 0;
+  setProgress(pct);
+};
+
+root.addEventListener('scroll', handler, { passive: true });
+```
+
+### Scroll Spy Implementation
+
+Same Intersection Observer pattern as other templates:
+
+```jsx
+const ob = new IntersectionObserver(
+  (entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        setActiveId(e.target.id);
+        break;
+      }
+    }
+  },
+  { rootMargin: '-5% 0px -80% 0px' }
+);
+```
+
+### Markdown Enhancements
+
+#### Inline Code
+Pink accent color:
+
+```jsx
+code: 'bg-gray-100 text-[#d63384] px-1.5 py-0.5 rounded'
+```
+
+#### Blockquotes
+Blue left border:
+
+```jsx
+blockquote: makeBlockquote('light', 'border-l-[3px] border-blue-300 pl-5 italic')
+```
+
+### Animations
+
+Two keyframe animations:
+
+```css
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeLeft {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+```
+
+- `fadeUp`: Applied to title and sections
+- `fadeLeft`: Applied to sidebar items
+
+## Customization Options
+
+### Progress Bar Colors
+
+Modify the gradient:
+
+```jsx
+from-blue-500 via-purple-500 to-pink-500
+// Change to:
+from-green-500 via-teal-500 to-cyan-500
+```
+
+### Accent Color
+
+Update blue accents throughout:
+
+```jsx
+// Links and active states
+text-blue-600
+border-blue-300
+bg-blue-50
+
+// Change to your brand color:
+text-[#yourColor]
+border-[#yourColor]
+bg-[#yourColor]/10
+```
+
+### Layout Width
+
+```jsx
+max-w-[1200px]  // Container max width
+max-w-4xl       // Content max width
+w-[250px]       // Sidebar width
+```
+
+### Typography
+
+Adjust font weights and sizes:
+
+```jsx
+text-[2.5rem] font-extrabold  // h1
+text-xl font-bold             // h2
+text-lg font-bold             // h3
+```
+
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+- Mobile browsers (responsive breakpoints)
+
+## Accessibility Features
+
+- **Keyboard Navigation**: Full keyboard support
+- **Focus Indicators**: Clear focus rings
+- **ARIA Labels**: Proper labeling for screen readers
+- **Semantic HTML**: Correct heading levels
+- **Color Contrast**: Meets WCAG AA standards
+- **Responsive Text**: Scales appropriately on mobile
+
+## Example Preview
+
+A typical section renders:
+
+```markdown
+## Methods
+
+### `Array.prototype.map()`
+
+Creates a new array with results of calling a function.
+
+```javascript
+const numbers = [1, 2, 3];
+const doubled = numbers.map(x => x * 2);
+console.log(doubled); // [2, 4, 6]
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| callback | Function | Function to call |
+```
+
+This produces:
+- Bold section heading with bottom border
+- Anchor link on hover
+- Light code blocks with VS theme
+- Bordered, rounded table
+- Clean typography hierarchy
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Create Documentation" icon="file-plus" href="/quickstart">
+    Generate docs with the MDN template
+  </Card>
+  
+  <Card title="Template Gallery" icon="images" href="/templates/overview">
+    Explore all 14 available templates
+  </Card>
+</CardGroup>

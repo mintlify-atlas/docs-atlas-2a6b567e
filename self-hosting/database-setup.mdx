@@ -1,0 +1,555 @@
+---
+title: "Database Setup"
+description: "MongoDB installation, configuration, and schema reference for WhatDoc"
+---
+
+## Overview
+
+WhatDoc uses **MongoDB** as its primary database with **Mongoose** as the ODM (Object Data Modeling) library. The database stores user accounts, GitHub integrations, project metadata, and generated documentation.
+
+## Prerequisites
+
+- MongoDB 5.0+ (6.0+ recommended for best performance)
+- 2GB+ free disk space
+- Network access to MongoDB instance
+
+## Installation Options
+
+### Option 1: Local MongoDB (Development)
+
+#### macOS
+
+```bash
+# Using Homebrew
+brew tap mongodb/brew
+brew install mongodb-community@7
+
+# Start MongoDB service
+brew services start mongodb-community@7
+
+# Verify installation
+mongosh --eval 'db.runCommand({ connectionStatus: 1 })'
+```
+
+#### Ubuntu/Debian
+
+```bash
+# Import MongoDB public key
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+   sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+# Add MongoDB repository
+echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] \
+https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | \
+sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+# Install
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+
+# Start service
+sudo systemctl start mongod
+sudo systemctl enable mongod
+
+# Verify
+mongosh --eval 'db.runCommand({ connectionStatus: 1 })'
+```
+
+#### Windows
+
+1. Download MongoDB Community Server from [mongodb.com/download-center/community](https://www.mongodb.com/try/download/community)
+2. Run the installer (choose "Complete" installation)
+3. Install MongoDB Compass (GUI tool) when prompted
+4. MongoDB runs as a Windows service automatically
+
+### Option 2: MongoDB Atlas (Production)
+
+Recommended for production deployments.
+
+1. Create a free account at [mongodb.com/cloud/atlas/register](https://www.mongodb.com/cloud/atlas/register)
+2. Create a new cluster (M0 free tier available)
+3. Configure network access:
+   - Click "Network Access" → "Add IP Address"
+   - For testing: Click "Allow Access from Anywhere" (0.0.0.0/0)
+   - For production: Add your server's IP address
+4. Create a database user:
+   - Click "Database Access" → "Add New Database User"
+   - Choose password authentication
+   - Grant "Read and write to any database" role
+5. Get connection string:
+   - Click "Connect" → "Connect your application"
+   - Copy the connection string
+   - Replace `<password>` with your actual password
+   - Replace `<dbname>` with `whatdoc`
+
+**Example Atlas URI:**
+```bash
+mongodb+srv://username:password@cluster0.abc123.mongodb.net/whatdoc?retryWrites=true&w=majority
+```
+
+### Option 3: Docker
+
+```bash
+# Run MongoDB container
+docker run -d \
+  --name whatdoc-mongodb \
+  -p 27017:27017 \
+  -e MONGO_INITDB_DATABASE=whatdoc \
+  -v whatdoc_mongo_data:/data/db \
+  mongo:7
+
+# Verify
+docker exec -it whatdoc-mongodb mongosh
+```
+
+## Database Configuration
+
+### Connection String Format
+
+**Local MongoDB:**
+```bash
+mongodb://localhost:27017/whatdoc
+```
+
+**With authentication:**
+```bash
+mongodb://username:password@localhost:27017/whatdoc?authSource=admin
+```
+
+**MongoDB Atlas:**
+```bash
+mongodb+srv://username:password@cluster.mongodb.net/whatdoc?retryWrites=true&w=majority
+```
+
+**Connection Pool Options (Production):**
+```bash
+mongodb://host:27017/whatdoc?maxPoolSize=50&minPoolSize=10&maxIdleTimeMS=60000
+```
+
+### Configure WhatDoc
+
+Set the `MONGO_URI` environment variable in `server/.env`:
+
+```bash
+MONGO_URI=mongodb://localhost:27017/whatdoc
+```
+
+> [!TIP]
+> For production, always use connection pooling and enable TLS/SSL. Atlas handles this automatically with `mongodb+srv://` URLs.
+
+## Database Schema
+
+WhatDoc uses two main collections:
+
+### Users Collection
+
+**Collection:** `users`  
+**Model:** `server/models/User.js`
+
+Stores user accounts and authentication data.
+
+```javascript
+{
+  _id: ObjectId,
+  email: String,              // Unique, required
+  password: String,           // bcrypt hashed (null for OAuth users)
+  firstName: String,
+  lastName: String,
+  githubId: String,           // GitHub OAuth ID
+  githubUsername: String,     // GitHub username
+  githubAccessToken: String,  // Encrypted GitHub token for API access
+  isPro: Boolean,             // Pro subscription status (default: false)
+  proExpiryDate: Date,        // Pro subscription expiry (null for free tier)
+  generationCount: Number,    // Total docs generated (default: 0)
+  has5DocsLimit: Boolean,     // Promo: 5 free docs unlocked (default: false)
+  promoGenerations: Number,   // Remaining promo generations (default: 0)
+  promoCodesUsed: [String],   // List of redeemed promo codes
+  hasPremiumTemplates: Boolean, // Access to premium templates (default: false)
+  planTier: String,           // Enum: ['free', '499', '999'] (default: 'free')
+  avatarUrl: String           // Cloudinary avatar URL (default: '')
+}
+```
+
+**Indexes:**
+- `email` (unique)
+- `githubId` (for OAuth lookups)
+
+**Example Document:**
+
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "email": "user@example.com",
+  "password": "$2b$10$rKjHV.Q8zN5g8hN8P4zWOe...",
+  "firstName": "John",
+  "lastName": "Doe",
+  "githubId": "12345678",
+  "githubUsername": "johndoe",
+  "githubAccessToken": "gho_abc123def456...",
+  "isPro": false,
+  "proExpiryDate": null,
+  "generationCount": 3,
+  "has5DocsLimit": false,
+  "promoGenerations": 0,
+  "promoCodesUsed": [],
+  "hasPremiumTemplates": false,
+  "planTier": "free",
+  "avatarUrl": "https://res.cloudinary.com/demo/image/upload/v123/avatar.jpg"
+}
+```
+
+### Projects Collection
+
+**Collection:** `projects`  
+**Model:** `server/models/Project.js`
+
+Stores documentation projects and generated content.
+
+```javascript
+{
+  _id: ObjectId,
+  userId: ObjectId,           // Reference to users._id
+  repoName: String,           // GitHub repo (e.g., "expressjs/express")
+  slug: String,               // URL-safe identifier (unique)
+  commitHash: String,         // Git commit SHA at generation time (nullable)
+  subdomain: String,          // Custom subdomain (e.g., "myapi" -> myapi.whatdoc.xyz)
+  customDomain: String,       // Custom domain (e.g., "docs.startup.com")
+  techstack: String,          // Enum: ['MERN', 'Next.js', 'Other'] (default: 'Other')
+  generatedDocs: String,      // Full Markdown content (can be very large)
+  isPublic: Boolean,          // Public/private visibility (default: true)
+  status: String,             // Enum: ['idle', 'queued', 'scanning', 'analyzing', 'generating', 'ready', 'failed']
+  llmProvider: String,        // Enum: ['gemini', 'openai'] (default: 'gemini')
+  template: String,           // UI template choice (default: 'twilio')
+  isPremium: Boolean,         // Premium feature access (default: false)
+  customization: {
+    logoUrl: String,          // Custom logo URL
+    ownerName: String,        // Project owner name
+    currentVersion: String,   // Version string (default: '1.0.0')
+    upcomingVersion: String,  // Next version (optional)
+    navLinks: [{
+      label: String,          // Navigation link label
+      url: String             // Navigation link URL
+    }]
+  },
+  createdAt: Date,            // Auto-generated timestamp
+  updatedAt: Date             // Auto-updated timestamp
+}
+```
+
+**Indexes:**
+- `userId` (for user project lookups)
+- `slug` (unique)
+- `subdomain` (unique, sparse)
+- `customDomain` (unique, sparse)
+
+**Template Options:**
+- `modern`, `minimal`, `twilio`, `django`, `mdn`, `aerolatex`
+- `fintech`, `devtools`, `minimalist`, `opensource`, `wiki`
+- `componentlib`, `consumertech`, `deepspace`, `web3`, `enterprise`
+
+**Example Document:**
+
+```json
+{
+  "_id": "507f1f77bcf86cd799439022",
+  "userId": "507f1f77bcf86cd799439011",
+  "repoName": "johndoe/awesome-api",
+  "slug": "awesome-api",
+  "commitHash": "7a8f9b2c1d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
+  "subdomain": "awesome-api",
+  "customDomain": null,
+  "techstack": "MERN",
+  "generatedDocs": "# Awesome API\n\n## Overview\n...",
+  "isPublic": true,
+  "status": "ready",
+  "llmProvider": "gemini",
+  "template": "twilio",
+  "isPremium": false,
+  "customization": {
+    "logoUrl": "https://example.com/logo.png",
+    "ownerName": "John Doe",
+    "currentVersion": "2.1.0",
+    "upcomingVersion": "2.2.0",
+    "navLinks": [
+      { "label": "GitHub", "url": "https://github.com/johndoe/awesome-api" },
+      { "label": "Docs", "url": "https://awesome-api.whatdoc.xyz" }
+    ]
+  },
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-15T10:35:22.000Z"
+}
+```
+
+## Database Initialization
+
+### Automatic Setup
+
+WhatDoc creates indexes and initializes the database automatically on first run:
+
+```javascript
+// server/server.js
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+    console.log('MongoDB connected');
+    await UserModel.syncIndexes();
+}).catch(err => console.error('MongoDB connection error:', err));
+```
+
+### Manual Initialization
+
+If you need to set up the database manually:
+
+```bash
+# Connect to MongoDB
+mongosh mongodb://localhost:27017/whatdoc
+```
+
+```javascript
+// Create collections and indexes
+db.createCollection('users');
+db.users.createIndex({ email: 1 }, { unique: true });
+db.users.createIndex({ githubId: 1 });
+
+db.createCollection('projects');
+db.projects.createIndex({ userId: 1 });
+db.projects.createIndex({ slug: 1 }, { unique: true });
+db.projects.createIndex({ subdomain: 1 }, { unique: true, sparse: true });
+db.projects.createIndex({ customDomain: 1 }, { unique: true, sparse: true });
+```
+
+## Backup & Restore
+
+### Backup Database
+
+**Full backup:**
+```bash
+mongodump --uri="mongodb://localhost:27017/whatdoc" --out=./backup-$(date +%Y%m%d)
+```
+
+**Specific collection:**
+```bash
+mongodump --uri="mongodb://localhost:27017/whatdoc" --collection=projects --out=./backup-projects
+```
+
+**Compressed backup:**
+```bash
+mongodump --uri="mongodb://localhost:27017/whatdoc" --archive=backup.archive --gzip
+```
+
+### Restore Database
+
+**Full restore:**
+```bash
+mongorestore --uri="mongodb://localhost:27017/whatdoc" ./backup-20240115/
+```
+
+**From archive:**
+```bash
+mongorestore --uri="mongodb://localhost:27017/whatdoc" --archive=backup.archive --gzip
+```
+
+**Specific collection:**
+```bash
+mongorestore --uri="mongodb://localhost:27017/whatdoc" --collection=projects ./backup-projects/whatdoc/projects.bson
+```
+
+> [!WARNING]
+> Always test restores in a non-production environment first. Restoring can overwrite existing data.
+
+## Performance Optimization
+
+### Indexing Strategy
+
+The schema includes optimized indexes for common queries:
+
+```javascript
+// Most frequent queries
+db.users.find({ email: 'user@example.com' });      // Uses email index
+db.users.find({ githubId: '12345678' });           // Uses githubId index
+db.projects.find({ userId: ObjectId('...') });     // Uses userId index
+db.projects.find({ slug: 'my-project' });          // Uses slug index
+db.projects.find({ subdomain: 'myapi' });          // Uses subdomain index
+```
+
+### Connection Pool Settings
+
+For production, configure connection pooling in your `MONGO_URI`:
+
+```bash
+MONGO_URI=mongodb://host:27017/whatdoc?maxPoolSize=50&minPoolSize=10&maxIdleTimeMS=60000&retryWrites=true&w=majority
+```
+
+**Recommended Settings:**
+- `maxPoolSize=50` - Maximum concurrent connections
+- `minPoolSize=10` - Minimum idle connections
+- `maxIdleTimeMS=60000` - Close idle connections after 60s
+- `retryWrites=true` - Auto-retry failed writes
+- `w=majority` - Write concern for data durability
+
+### Large Document Handling
+
+The `generatedDocs` field can contain very large Markdown content (100KB+). Consider these optimizations:
+
+1. **Lazy loading:** Only fetch `generatedDocs` when needed
+```javascript
+// Don't fetch generatedDocs in list views
+db.projects.find({ userId: ... }, { generatedDocs: 0 });
+```
+
+2. **Compression:** Enable compression in MongoDB connection
+```bash
+MONGO_URI=mongodb://host:27017/whatdoc?compressors=snappy,zlib
+```
+
+3. **GridFS (optional):** For documents >16MB, consider GridFS:
+```javascript
+const { GridFSBucket } = require('mongodb');
+const bucket = new GridFSBucket(mongoose.connection.db, {
+  bucketName: 'docs'
+});
+```
+
+## Monitoring & Maintenance
+
+### Check Database Size
+
+```javascript
+use whatdoc
+db.stats(1024 * 1024)  // Size in MB
+```
+
+### Monitor Query Performance
+
+```javascript
+// Enable profiling
+db.setProfilingLevel(1, { slowms: 100 })  // Log queries >100ms
+
+// View slow queries
+db.system.profile.find().sort({ ts: -1 }).limit(5)
+```
+
+### Index Usage Statistics
+
+```javascript
+db.projects.aggregate([
+  { $indexStats: {} }
+])
+```
+
+### Cleanup Old Data
+
+Remove projects older than 90 days:
+
+```javascript
+db.projects.deleteMany({
+  updatedAt: { $lt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) },
+  status: 'failed'
+})
+```
+
+## Security Best Practices
+
+### Enable Authentication (Production)
+
+```bash
+# Create admin user
+mongosh
+use admin
+db.createUser({
+  user: "admin",
+  pwd: "secure-password",
+  roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+})
+
+# Create app user
+use whatdoc
+db.createUser({
+  user: "whatdoc_app",
+  pwd: "app-password",
+  roles: [ { role: "readWrite", db: "whatdoc" } ]
+})
+```
+
+**Update connection string:**
+```bash
+MONGO_URI=mongodb://whatdoc_app:app-password@localhost:27017/whatdoc?authSource=whatdoc
+```
+
+### Network Security
+
+1. **Bind to localhost only:**
+```yaml
+# /etc/mongod.conf
+net:
+  bindIp: 127.0.0.1
+  port: 27017
+```
+
+2. **Enable TLS/SSL:**
+```yaml
+net:
+  tls:
+    mode: requireTLS
+    certificateKeyFile: /etc/ssl/mongodb.pem
+```
+
+3. **Firewall rules:**
+```bash
+sudo ufw allow from YOUR_APP_SERVER_IP to any port 27017
+sudo ufw deny 27017
+```
+
+> [!WARNING]
+> Never expose MongoDB to the public internet without authentication and TLS enabled. Use MongoDB Atlas or a VPN for remote access.
+
+## Troubleshooting
+
+### Connection Refused
+
+```bash
+# Check if MongoDB is running
+sudo systemctl status mongod
+
+# Check port binding
+sudo netstat -tulpn | grep 27017
+
+# Test connection
+mongosh --host localhost --port 27017
+```
+
+### Authentication Failed
+
+```bash
+# Verify user exists
+mongosh --host localhost --port 27017
+use whatdoc
+db.getUsers()
+
+# Check connection string format
+# Correct: mongodb://username:password@host:27017/whatdoc?authSource=whatdoc
+```
+
+### Slow Queries
+
+```javascript
+// Find queries without indexes
+db.setProfilingLevel(2)  // Log all queries
+db.system.profile.find({ planSummary: /COLLSCAN/ })
+
+// Create missing indexes
+db.projects.createIndex({ userId: 1 })
+```
+
+### Disk Space Issues
+
+```bash
+# Check database size
+du -sh /var/lib/mongodb
+
+# Compact collections
+mongosh
+use whatdoc
+db.runCommand({ compact: 'projects' })
+```
+
+> [!TIP]
+> For production monitoring, use MongoDB Atlas built-in monitoring or tools like MongoDB Ops Manager, Prometheus + mongodb_exporter, or Datadog.

@@ -1,0 +1,55 @@
+---
+title: 'Self-Hosting Introduction'
+description: 'Learn why and how to self-host WhatDoc on your own infrastructure'
+---
+
+## Why Self-Host WhatDoc?
+
+Self-hosting WhatDoc gives you complete control over your documentation generation infrastructure. Whether you're looking for privacy, customization, or simply want to run WhatDoc on your own servers, this guide will help you get started.
+
+### Benefits of Self-Hosting
+
+**Privacy and Control**
+Keep your source code and documentation generation entirely within your infrastructure. Perfect for organizations with strict security requirements or private repositories.
+
+**Unlimited Generation**
+When you self-host with your own Gemini API key, you're not subject to any rate limits imposed by the hosted service. Generate as many docs as you need.
+
+**Customization**
+Full access to modify templates, adjust the code ingestion pipeline, or integrate with your existing toolchain.
+
+**Cost Management**
+Pay only for the infrastructure you use. With your own Gemini API key and servers, you control the costs.
+
+### What You'll Need
+
+Before diving into self-hosting, here's a quick overview of what's required:
+
+- **Node.js 18+** for running both the client and server
+- **MongoDB** for storing user data, projects, and generated documentation
+- **Gemini API key** from Google AI Studio for AI-powered documentation generation
+- **GitHub OAuth app** for authentication and repository access
+- **Basic server infrastructure** with at least 2GB RAM and 10GB storage
+
+### Architecture Overview
+
+WhatDoc consists of two main components:
+
+1. **Frontend (Client)** - React application built with Vite that provides the user interface
+2. **Backend (Server)** - Express API that handles authentication, code ingestion, and LLM integration
+
+The server performs ephemeral repository cloning, intelligently filters and minifies code, then sends it to Gemini for documentation generation. Generated docs are stored in MongoDB and rendered through one of four beautiful templates.
+
+### Time Commitment
+
+Expect to spend **15-30 minutes** on initial setup, including:
+- Installing dependencies
+- Configuring environment variables
+- Setting up MongoDB and GitHub OAuth
+- Starting both services
+
+Once configured, WhatDoc runs as a standard web application stack.
+
+### Ready to Begin?
+
+Let's start with the prerequisites in the next section.

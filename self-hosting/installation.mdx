@@ -1,0 +1,146 @@
+---
+title: 'Installation'
+description: 'Step-by-step guide to installing WhatDoc on your server'
+---
+
+## Installation Guide
+
+Follow these steps to install WhatDoc on your server.
+
+### Clone the Repository
+
+<Steps>
+  <Step title="Clone from GitHub">
+    ```bash
+    git clone https://github.com/herin7/whatdoc.xyz.git
+    cd whatdoc.xyz
+    ```
+  </Step>
+</Steps>
+
+### Install Server Dependencies
+
+The server is an Express application that handles authentication, repository cloning, code ingestion, and LLM integration.
+
+<Steps>
+  <Step title="Navigate to server directory">
+    ```bash
+    cd server
+    ```
+  </Step>
+  
+  <Step title="Install npm packages">
+    ```bash
+    npm install
+    ```
+    
+    This installs all required dependencies including:
+    - **Express 5** - HTTP server framework
+    - **Mongoose** - MongoDB ODM
+    - **@google/generative-ai** - Gemini API client
+    - **simple-git** - Git operations for repository cloning
+    - **jsonwebtoken & bcrypt** - Authentication
+    - **zod** - Schema validation
+    - And more...
+  </Step>
+  
+  <Step title="Verify installation">
+    Check that dependencies installed successfully:
+    ```bash
+    npm list --depth=0
+    ```
+  </Step>
+</Steps>
+
+### Install Client Dependencies
+
+The client is a React application built with Vite that provides the user interface.
+
+<Steps>
+  <Step title="Navigate to client directory">
+    ```bash
+    cd ../client
+    ```
+  </Step>
+  
+  <Step title="Install npm packages">
+    ```bash
+    npm install
+    ```
+    
+    This installs all required dependencies including:
+    - **React 19** - UI framework
+    - **Vite** - Build tool and dev server
+    - **TailwindCSS** - Utility-first styling
+    - **React Router** - Client-side routing
+    - **React Markdown** - Markdown rendering
+    - **Lucide Icons** - Icon system
+    - And more...
+  </Step>
+  
+  <Step title="Verify installation">
+    Check that dependencies installed successfully:
+    ```bash
+    npm list --depth=0
+    ```
+  </Step>
+</Steps>
+
+### Project Structure
+
+After installation, your project structure should look like this:
+
+```
+whatdoc.xyz/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── app/            # Landing page
+│   │   ├── components/     # Reusable UI components
+│   │   ├── config/         # Template registry
+│   │   ├── context/        # Auth context provider
+│   │   ├── lib/            # API client & utilities
+│   │   ├── pages/          # Route pages
+│   │   └── templates/      # Doc display templates
+│   ├── public/             # Static assets
+│   └── package.json
+│
+├── server/                 # Express backend
+│   ├── controllers/        # Route handlers
+│   ├── models/             # Mongoose schemas
+│   ├── routes/             # API routes
+│   ├── services/           # Engine & LLM logic
+│   ├── middlewares/        # Auth middleware
+│   ├── utils/              # Key rotation manager
+│   └── package.json
+│
+└── README.md
+```
+
+### Verify Installation
+
+<Steps>
+  <Step title="Check Node.js is working">
+    From the server directory:
+    ```bash
+    node --version
+    ```
+  </Step>
+  
+  <Step title="Check server dependencies">
+    ```bash
+    cd server
+    npm list express mongoose
+    ```
+  </Step>
+  
+  <Step title="Check client dependencies">
+    ```bash
+    cd ../client
+    npm list react vite
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+Now that installation is complete, proceed to [Configuration](/self-hosting/configuration) to set up your environment variables and start the services.

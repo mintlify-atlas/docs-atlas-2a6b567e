@@ -1,0 +1,292 @@
+---
+title: Django Template
+description: Classic documentation theme with two-column layout and table of contents
+---
+
+# Django Template
+
+The Django template offers a **classic, professional documentation design** modelled after Django's official documentation. It features a two-column layout with prominent table of contents navigation, making it ideal for comprehensive guides and extensive documentation sets.
+
+## Design Overview
+
+This template uses a **light color scheme** with forest green accents (`#0c4b33`), providing excellent readability and a traditional documentation feel. The design prioritizes content hierarchy and easy navigation through long-form documentation.
+
+### Key Visual Elements
+
+- **Color Palette**: Paper white (`#f8f8f8`) background with forest green (`#0c4b33`) header and emerald accents (`#44b78b`)
+- **Layout**: Fixed sidebar (260px) with centered content area (max-width: 48rem)
+- **Typography**: Serif headings with sans-serif body text
+- **Code Highlighting**: OneLight theme for clean, readable code blocks
+
+## Features
+
+### Header Design
+
+The template features a **two-tier header system**:
+
+#### Primary Header
+- Deep green background (`#0c4b33`)
+- Project name and repository link
+- Mobile-responsive hamburger menu
+- WhatDoc branding
+
+#### Breadcrumb Bar
+- Subtle darker green (`#0a3f2b`) background
+- Contextual navigation path
+- Tech stack badge display
+- Glass-morphic styling
+
+```jsx
+// Breadcrumb structure
+Home → {repoShort} Documentation
+```
+
+### Sidebar Navigation
+
+The left sidebar provides:
+- **Search Input**: Real-time section filtering with focus effects
+- **Table of Contents**: All sections with file icons
+- **Active Highlighting**: Green background with left border accent
+- **Smooth Transitions**: 200ms duration for hover states
+
+```jsx
+// Active section styling
+active ? 'bg-[#0c4b33]/[0.07] text-[#0c4b33] font-semibold border-l-[3px]' : 'text-gray-600'
+```
+
+### Content Area
+
+The main reading area features:
+- **Academic Title Block**: Serif heading with decorative gradient rule
+- **Generous Spacing**: 14-unit bottom margin between sections
+- **Border Separators**: Emerald-tinted horizontal rules under headings
+- **Prose Optimization**: Stone color palette for optimal reading
+
+### Code Blocks
+
+Code blocks include:
+- **Language Header**: Gray header bar with language label
+- **Light Theme**: OneLight syntax highlighting
+- **Bordered Container**: Subtle gray border with rounded corners
+- **Near-white Background**: `#fdfdfd` for minimal eye strain
+
+```jsx
+// Code block container
+<div className="rounded-lg overflow-hidden border border-gray-200">
+  <div className="bg-gray-100 border-b border-gray-200">
+    <span className="text-[11px] font-mono uppercase">{language}</span>
+  </div>
+  <SyntaxHighlighter style={oneLight}>{code}</SyntaxHighlighter>
+</div>
+```
+
+### Inline Code
+
+Inline code stands out with:
+- Emerald background (`emerald-50`)
+- Deep green text (`#0c4b33`)
+- Semi-bold font weight
+- Subtle padding and rounding
+
+## Use Cases
+
+### Perfect For
+
+<CardGroup cols={2}>
+  <Card title="Framework Documentation" icon="book-open">
+    Comprehensive guides for web frameworks and libraries
+  </Card>
+  
+  <Card title="Tutorial Series" icon="graduation-cap">
+    Step-by-step learning materials with multiple sections
+  </Card>
+  
+  <Card title="User Manuals" icon="file-text">
+    Product documentation for end-users and administrators
+  </Card>
+  
+  <Card title="Knowledge Bases" icon="database">
+    Internal wikis and reference materials
+  </Card>
+</CardGroup>
+
+### Not Ideal For
+
+- Dark theme projects (use Twilio or DevTools instead)
+- Minimalist designs (use Minimalist template instead)
+- Code-heavy API docs (use Fintech or Twilio instead)
+
+## Technical Implementation
+
+### Section Parsing
+
+Identical to other templates, sections are parsed from `##` headings:
+
+```javascript
+function parseSections(markdown) {
+  // Creates { id, title, content } objects
+  // Filters out empty sections
+  return sections
+    .filter(s => s.content && !s.content.match(/^\s*_?\(?Not enough data/i));
+}
+```
+
+### Scroll Features
+
+#### Scroll Spy
+Tracks active section using Intersection Observer:
+
+```jsx
+const ob = new IntersectionObserver(
+  (entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        setActiveId(e.target.id);
+        break;
+      }
+    }
+  },
+  { root, rootMargin: '-5% 0px -80% 0px' }
+);
+```
+
+#### Back-to-Top Button
+Floating button appears after scrolling 500px:
+
+```jsx
+const showTop = scrollTop > 500;
+
+<button className={`
+  fixed bottom-6 right-6 rounded-full bg-[#0c4b33]
+  transition-all duration-300
+  ${showTop ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+`}>
+  <ArrowUp className="size-4" />
+</button>
+```
+
+### Markdown Components
+
+#### Blockquotes
+Styled with emerald left border:
+
+```jsx
+blockquote: makeBlockquote('light', 'border-l-[3px] border-emerald-300 pl-5 italic text-gray-500')
+```
+
+#### Tables
+Not explicitly styled in this template (inherits from prose).
+
+### Animations
+
+Fade-down entrance animation:
+
+```css
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+```
+
+Applied to title block and sections with staggered delays.
+
+## Customization Options
+
+### Color Scheme
+
+Update the green accent colors:
+
+```jsx
+// Primary green
+bg-[#0c4b33]   // Header background
+text-[#0c4b33] // Headings
+
+// Secondary green
+bg-[#44b78b]   // Borders and accents
+text-[#44b78b] // Links
+
+// Adjust to match your brand
+#0c4b33 → #yourPrimaryColor
+#44b78b → #yourAccentColor
+```
+
+### Typography
+
+The template uses a serif/sans-serif combination:
+
+```jsx
+font-serif  // Applied to h1, h2 (classic book style)
+font-normal // Body text (sans-serif)
+```
+
+Change to:
+```jsx
+font-sans   // Modern sans-serif headings
+font-mono   // Monospace technical docs
+```
+
+### Layout Width
+
+Adjust content constraints:
+
+```jsx
+max-w-3xl   // Main content (48rem)
+max-w-[1440px]  // Header max width
+w-[260px]   // Sidebar width
+```
+
+## Browser Support
+
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Mobile responsive (320px and up)
+- CSS Grid and Flexbox required
+- JavaScript for scroll spy and animations
+
+## Example Preview
+
+A typical section renders like this:
+
+```markdown
+## Configuration
+
+Create a `settings.py` file:
+
+```python
+DATABASE = {
+    'ENGINE': 'postgresql',
+    'NAME': 'mydb',
+}
+```
+
+Then run migrations:
+
+```bash
+python manage.py migrate
+```
+```
+
+This creates:
+- Serif section heading with emerald underline
+- Light code blocks with language headers
+- Inline code with emerald highlights
+- Clean spacing and typography
+
+## Accessibility Features
+
+- **Semantic HTML**: Proper heading hierarchy
+- **ARIA Labels**: Screen reader support
+- **Keyboard Navigation**: Full keyboard access
+- **Focus Indicators**: Visible focus rings
+- **Color Contrast**: WCAG AA compliant
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Get Started" icon="rocket" href="/quickstart">
+    Generate documentation with the Django template
+  </Card>
+  
+  <Card title="Compare Templates" icon="table" href="/templates/overview">
+    See how Django compares to other templates
+  </Card>
+</CardGroup>

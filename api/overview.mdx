@@ -1,0 +1,126 @@
+---
+title: API Overview
+description: Introduction to the WhatDoc API - base URL, response format, and getting started
+---
+
+## Welcome to WhatDoc API
+
+The WhatDoc API enables you to programmatically generate, manage, and customize documentation for your GitHub repositories. This REST API uses JWT authentication and returns JSON responses.
+
+## Base URL
+
+All API requests should be made to:
+
+```
+https://api.whatdoc.xyz
+```
+
+For local development:
+
+```
+http://localhost:3000
+```
+
+## API Routes Structure
+
+The API is organized into the following route groups:
+
+- `/auth` - Authentication and user management
+- `/projects` - Project creation and management
+- `/payment` - Payment and subscription handling
+
+## Response Format
+
+### Success Response
+
+All successful API responses follow this structure:
+
+```json
+{
+  "message": "Operation successful",
+  "data": {
+    // Response data varies by endpoint
+  }
+}
+```
+
+### Error Response
+
+Error responses include an error message and appropriate HTTP status code:
+
+```json
+{
+  "error": "Error description",
+  "code": "ERROR_CODE" // Optional error code
+}
+```
+
+## HTTP Status Codes
+
+The API uses standard HTTP status codes:
+
+| Status Code | Description |
+|-------------|-------------|
+| `200` | Success - Request completed successfully |
+| `201` | Created - Resource created successfully |
+| `400` | Bad Request - Invalid request parameters |
+| `401` | Unauthorized - Invalid or missing authentication |
+| `403` | Forbidden - Insufficient permissions |
+| `404` | Not Found - Resource not found |
+| `409` | Conflict - Resource already exists |
+| `429` | Too Many Requests - Rate limit exceeded |
+| `500` | Internal Server Error - Server error |
+
+## Rate Limiting
+
+API endpoints are rate-limited to prevent abuse:
+
+- **Generation endpoints**: 30 requests per minute
+- **Standard headers** are included in rate limit responses
+- When rate limited, you'll receive a `429` status code
+
+```json
+{
+  "error": "Too many generation requests."
+}
+```
+
+## CORS
+
+The API supports CORS for:
+- Whitelisted origins configured in `CORS_ORIGINS`
+- Subdomains of `whatdoc.xyz`
+- Custom domains configured in project settings
+
+## Content Type
+
+All requests with a body should include the `Content-Type` header:
+
+```
+Content-Type: application/json
+```
+
+## Bring Your Own Key (BYOK)
+
+For LLM API calls, you can optionally provide your own API key:
+
+**Headers:**
+- `X-Custom-Api-Key` - Your LLM provider API key
+- `X-Target-Model` - Target model (default: `gemini-2.5-flash-lite`)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn how to authenticate API requests
+  </Card>
+  <Card title="Projects" icon="folder" href="/api/projects">
+    Create and manage documentation projects
+  </Card>
+  <Card title="Generation" icon="wand-magic-sparkles" href="/api/generation">
+    Monitor documentation generation status
+  </Card>
+  <Card title="Customization" icon="palette" href="/api/customization">
+    Customize your documentation site
+  </Card>
+</CardGroup>

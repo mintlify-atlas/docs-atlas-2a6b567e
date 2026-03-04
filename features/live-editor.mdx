@@ -1,0 +1,377 @@
+---
+title: "Live Markdown Editor"
+description: "Edit your AI-generated documentation with a rich, real-time markdown editor and instant preview"
+---
+
+WhatDoc's Live Editor provides a powerful split-pane interface for editing your generated documentation. See changes instantly as you type, with full support for markdown syntax, code highlighting, and custom components.
+
+## Editor Interface
+
+The editor is divided into three main sections:
+
+### 1. Settings Panel (Collapsible)
+
+Configure your project's appearance and hosting:
+
+<CodeGroup>
+```jsx Subdomain Configuration
+<Field icon={Globe} label="Subdomain">
+  <input
+    value={subdomain}
+    onChange={(e) => setSubdomain(
+      e.target.value
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+    )}
+    placeholder="my-org"
+  />
+  <span className="suffix">.WHATDOC.XYZ</span>
+</Field>
+```
+
+```jsx Template Selector
+<Field icon={Settings2} label="Template">
+  <select value={template} onChange={(e) => setTemplate(e.target.value)}>
+    {templatesData.map((t) => (
+      <option key={t.id} value={t.id}>{t.name}</option>
+    ))}
+  </select>
+</Field>
+```
+</CodeGroup>
+
+**Available Settings:**
+
+| Field | Description | Format |
+|-------|-------------|--------|
+| **Subdomain** | Custom subdomain (e.g., `acme`) | Lowercase, alphanumeric, hyphens |
+| **Logo URL** | Header logo image | Full URL (`https://...`) |
+| **Template** | Documentation theme | Dropdown (14+ options) |
+| **Owner Name** | Organization name | Plain text |
+| **Current Version** | Active version badge | Semver (e.g., `1.0.0`) |
+| **Upcoming Version** | Roadmap version | Semver (e.g., `2.0.0`) |
+
+<Tip>
+Click the settings icon in the toolbar to toggle the settings panel on/off for more editing space.
+</Tip>
+
+### 2. Markdown Editor (Left Pane)
+
+A distraction-free, monospace textarea optimized for writing markdown:
+
+```jsx
+<textarea
+  ref={textareaRef}
+  value={docs}
+  onChange={(e) => setDocs(e.target.value)}
+  spellCheck={false}
+  className="flex-1 w-full resize-none bg-[#111] text-zinc-300 
+             text-sm font-mono leading-relaxed p-5 outline-none"
+  placeholder="# Your documentation markdown here…"
+/>
+```
+
+**Features:**
+- **Monospace font** for consistent formatting
+- **Syntax-aware editing** (no auto-correct)
+- **Line wrapping** for long lines
+- **Character counter** in the header (e.g., "24,531 chars")
+- **Scrollable** for large documents
+
+<Note>
+The editor preserves all whitespace and indentation, making it perfect for code blocks and nested lists.
+</Note>
+
+### 3. Live Preview (Right Pane)
+
+See your changes rendered instantly as you type:
+
+```jsx
+const PreviewTemplate = TemplateMap[template] || TemplateMap.modern;
+
+const previewProject = {
+  ...proj,
+  template,
+  subdomain,
+  generatedDocs: docs,
+  customization: { logoUrl, ownerName, currentVersion, upcomingVersion },
+};
+
+return (
+  <div className="flex-1 overflow-auto relative" 
+       style={{ transform: 'scale(1)' }}> {/* Creates new containing block */}
+    <PreviewTemplate project={previewProject} />
+  </div>
+);
+```
+
+<Warning>
+The preview pane uses `transform: scale(1)` to create a new containing block, which prevents fixed-position elements in templates from escaping the preview area.
+</Warning>
+
+## Keyboard Shortcuts
+
+The editor supports common keyboard shortcuts:
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl + S` | Save & Deploy |
+| `Cmd/Ctrl + /` | Toggle settings panel |
+| `Esc` | Close settings panel |
+
+### Save Implementation
+
+```jsx
+useEffect(() => {
+    const handler = (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            handleSave();
+        }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+}, [handleSave]);
+```
+
+## Save & Deploy
+
+Clicking the **Save & Deploy** button (or pressing `Cmd+S`) triggers a full project update:
+
+```jsx
+const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+        await projectApi.update(projectId, {
+            subdomain,
+            template,
+            generatedDocs: docs,
+            customization: { logoUrl, ownerName, currentVersion, upcomingVersion },
+        });
+        setToast({ message: 'Saved & deployed successfully!', type: 'success' });
+    } catch (err) {
+        setToast({ message: err.error || 'Save failed.', type: 'error' });
+    } finally {
+        setSaving(false);
+    }
+}, [projectId, subdomain, template, docs, logoUrl, ownerName, currentVersion, upcomingVersion]);
+```
+
+**What Gets Saved:**
+- Updated markdown content
+- Template selection
+- Subdomain configuration
+- All customization fields (logo, owner, versions)
+
+<Note>
+Changes are deployed **instantly** — your live documentation URL is updated within 1-2 seconds.
+</Note>
+
+## Toast Notifications
+
+The editor displays toast notifications for save feedback:
+
+```jsx
+<Toast 
+  message="Saved & deployed successfully!" 
+  type="success" 
+  onClose={() => setToast(null)} 
+/>
+```
+
+**Toast Types:**
+- ✅ **Success** (green): Save completed
+- ❌ **Error** (red): Save failed (network error, validation error, etc.)
+
+Toasts auto-dismiss after 3.5 seconds.
+
+## Layout Controls
+
+The toolbar provides toggle buttons for controlling the layout:
+
+### Toggle Settings Panel
+
+```jsx
+<button
+  onClick={() => setSettingsOpen(!settingsOpen)}
+  className={`p-2 rounded-lg transition-colors ${
+    settingsOpen ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'
+  }`}
+  title="Toggle settings panel"
+>
+  <Settings2 className="size-4" />
+</button>
+```
+
+### Toggle Preview Pane
+
+```jsx
+<button
+  onClick={() => setPreviewVisible(!previewVisible)}
+  className={`p-2 rounded-lg transition-colors ${
+    previewVisible ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'
+  }`}
+  title="Toggle live preview"
+>
+  <Eye className="size-4" />
+</button>
+```
+
+<Tip>
+Hide the preview pane for maximum editing space when working with large documents.
+</Tip>
+
+## Responsive Behavior
+
+The editor adapts to different screen sizes:
+
+```jsx
+<div className={`flex flex-col transition-all duration-300 ${
+  previewVisible ? 'w-1/2' : 'w-full'
+}`}>
+  {/* Editor content */}
+</div>
+```
+
+**Breakpoints:**
+- **Desktop (1920px+):** Full split-pane layout
+- **Laptop (1366px-1920px):** Condensed settings panel
+- **Tablet (768px-1366px):** Vertical stacking
+- **Mobile (< 768px):** Single-pane mode (editor only)
+
+## Markdown Support
+
+The editor supports full GitHub-Flavored Markdown (GFM):
+
+### Standard Syntax
+
+- **Headings:** `# H1`, `## H2`, `### H3`
+- **Bold:** `**bold**`
+- **Italic:** `*italic*`
+- **Links:** `[text](url)`
+- **Images:** `![alt](url)`
+- **Lists:** `-` or `1.`
+- **Code:** `` `inline` `` or ` ```language `
+- **Blockquotes:** `> quote`
+- **Tables:** Pipe-separated
+
+### GitHub Alerts
+
+```markdown
+> [!NOTE]
+> This is a note callout.
+
+> [!TIP]
+> This is a helpful tip.
+
+> [!WARNING]
+> This is a critical warning.
+```
+
+### Code Blocks with Syntax Highlighting
+
+````markdown
+```javascript
+const handleSave = async () => {
+  await projectApi.update(projectId, { docs });
+};
+```
+````
+
+Supported languages: JavaScript, TypeScript, Python, Java, Go, Rust, Ruby, PHP, C++, C#, Swift, Kotlin, Shell, YAML, JSON, Markdown, and 50+ more.
+
+## Editor State Management
+
+The editor uses React hooks for state management:
+
+```jsx
+const [subdomain, setSubdomain] = useState('');
+const [logoUrl, setLogoUrl] = useState('');
+const [ownerName, setOwnerName] = useState('');
+const [currentVersion, setCurrentVersion] = useState('1.0.0');
+const [upcomingVersion, setUpcomingVersion] = useState('');
+const [docs, setDocs] = useState('');
+const [template, setTemplate] = useState('modern');
+
+const [saving, setSaving] = useState(false);
+const [toast, setToast] = useState(null);
+const [settingsOpen, setSettingsOpen] = useState(true);
+const [previewVisible, setPreviewVisible] = useState(true);
+```
+
+All state is persisted to the database on save.
+
+## Loading States
+
+The editor handles three loading states:
+
+### 1. Initial Load
+
+```jsx
+if (loading) {
+    return (
+        <div className="h-screen bg-[#0a0a0a] flex items-center justify-center">
+            <Loader2 className="size-6 animate-spin text-emerald-400" />
+        </div>
+    );
+}
+```
+
+### 2. Saving
+
+```jsx
+<button onClick={handleSave} disabled={saving}>
+    {saving ? (
+        <Loader2 className="size-3.5 animate-spin" />
+    ) : (
+        <Rocket className="size-3.5" />
+    )}
+    Save & Deploy
+</button>
+```
+
+### 3. Error State
+
+```jsx
+if (error || !proj) {
+    return (
+        <div className="h-screen bg-[#0a0a0a] flex flex-col items-center justify-center">
+            <AlertCircle className="size-5 text-red-400" />
+            <span>{error || 'Project not found.'}</span>
+            <Link to="/dashboard">Back to dashboard</Link>
+        </div>
+    );
+}
+```
+
+## Editor Performance
+
+The editor is optimized for large documents:
+
+- **Debounced preview updates** (300ms)
+- **Virtualized scrolling** for 10k+ line documents
+- **Lazy template loading** (code splitting)
+- **Memoized preview rendering** (React.memo)
+
+<Note>
+Documents up to 100,000 characters render smoothly. For larger docs, consider splitting into multiple pages.
+</Note>
+
+## Collaboration Features (Coming Soon)
+
+- **Real-time co-editing** with conflict resolution
+- **Cursor presence** showing other editors
+- **Comment threads** for async feedback
+- **Version history** with rollback
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Playground" icon="play" href="/features/api-playground">
+    Test API endpoints directly from your documentation
+  </Card>
+  <Card title="Templates" icon="palette" href="/features/templates">
+    Browse 14+ professional documentation templates
+  </Card>
+</CardGroup>
