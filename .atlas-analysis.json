@@ -1,0 +1,132 @@
+{
+  "projectType": "saas",
+  "projectName": "WhatDoc",
+  "projectDescription": "AI-powered documentation generator that creates beautiful docs from GitHub repos in 60 seconds",
+  "theme": "mint",
+  "primaryColor": "#31c892",
+  "lightColor": "#1c7354",
+  "darkColor": "#040505",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/ai-generation",
+              "features/templates",
+              "features/custom-domains",
+              "features/live-editor",
+              "features/api-playground"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/connecting-github",
+              "guides/generating-docs",
+              "guides/customizing-docs",
+              "guides/deploying-docs",
+              "guides/byok"
+            ]
+          },
+          {
+            "group": "Templates",
+            "pages": [
+              "templates/overview",
+              "templates/twilio",
+              "templates/django",
+              "templates/mdn",
+              "templates/aerolatex"
+            ]
+          },
+          {
+            "group": "Plans & Pricing",
+            "pages": [
+              "pricing/plans",
+              "pricing/limits",
+              "pricing/upgrade"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/projects",
+              "api/generation",
+              "api/customization"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Self-Hosting",
+        "groups": [
+          {
+            "group": "Setup",
+            "pages": [
+              "self-hosting/introduction",
+              "self-hosting/prerequisites",
+              "self-hosting/installation",
+              "self-hosting/configuration"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "self-hosting/docker",
+              "self-hosting/environment-variables",
+              "self-hosting/database-setup"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "AI-powered documentation generation using Gemini/OpenAI",
+    "14+ professional documentation templates (Twilio, Django, MDN, AeroLaTeX, etc.)",
+    "Custom subdomains and domain support (yourproject.whatdoc.xyz)",
+    "GitHub OAuth integration for seamless repo import",
+    "Live markdown editor with instant saves",
+    "API playground for testing endpoints directly in docs",
+    "Smart code ingestion with token optimization",
+    "BYOK (Bring Your Own Key) support for unlimited generation",
+    "Multi-tier pricing (free and pro plans)",
+    "Command palette for power users"
+  ],
+  "publicApiSurface": [
+    "POST /api/project/create - Create new documentation project",
+    "GET /api/project/:projectId - Get project details",
+    "PUT /api/project/:projectId - Update project",
+    "DELETE /api/project/:projectId - Delete project",
+    "GET /api/project/custom-domain/:domain - Get project by custom domain",
+    "POST /api/project/:projectId/regenerate - Regenerate documentation",
+    "GET /api/project/:projectId/status - Get generation job status",
+    "POST /api/auth/register - Register new user",
+    "POST /api/auth/login - Login user",
+    "GET /api/auth/github - GitHub OAuth flow",
+    "GET /api/auth/github/callback - GitHub OAuth callback",
+    "POST /api/payment/create-order - Create payment order",
+    "POST /api/payment/verify - Verify payment"
+  ]
+}
